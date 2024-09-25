@@ -69,7 +69,7 @@ const WhyCricArena = () => {
   });
 
   return (
-    <div className="h-fit overflow-x-hidden">
+    <div className="h-fit overflow-hidden">
       <div id="heading1" className="md:ml-28 ml:4 lg:text-6xl text-3xl text-gold  font-cabinet-extrabold font-bold lg:mt-8 mt-4 w-[250px] lg:w-[470px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl  bg-black">
         <span className="text-white md:mr-2">Why  </span>   CricArena?
       </div>
@@ -82,7 +82,7 @@ const WhyCricArena = () => {
         className="block md:hidden absolute left-0 rounded-e-lg h-[4px] w-[80px] bg-gradient-to-r from-transparent to-gold animate-[animate_5s_linear_infinite]"
       ></motion.span>
       
-      <div className="hidden lg:block h-[80vh] bg-black mx-20">
+      <div className="hidden lg:block h-[100vh] bg-black mx-20">
         {/* <Progressbar/> */}
         <div className="flex justify-end mb-4 gap-8">
           <div className="flex gap-12">
