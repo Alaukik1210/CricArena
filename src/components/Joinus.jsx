@@ -18,7 +18,7 @@ const Joinus = () => {
   });
 
   return (
-    <div id="aboutus" className="h-auto md:h-[80vh] px-4 sm:px-8 md:px-0">
+    <div id="aboutus" className="h-auto md:h-[80vh]  px-4 sm:px-8 md:px-0">
       <div ref={refHeader} className="">
         <motion.div
           animate={inViewHeader ? { x: 100 } : { x: 0 }}

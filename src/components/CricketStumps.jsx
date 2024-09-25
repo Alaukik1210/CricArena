@@ -143,7 +143,7 @@ const CricketStumps = () => {
 
       <div>
         <div className="ml-40 text-end">
-          <div className="h-[50vh]  absolute pl-20 right-40 pb-20 bg-black">
+          <div className="h-[50vh]  absolute pl-20 right-40 pb-20 bg-transparent">
             <div className="">
               {/* Stumps */}
               <div

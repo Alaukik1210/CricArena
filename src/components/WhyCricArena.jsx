@@ -82,14 +82,18 @@ const WhyCricArena = () => {
         className="block md:hidden absolute left-0 rounded-e-lg h-[4px] w-[80px] bg-gradient-to-r from-transparent to-gold animate-[animate_5s_linear_infinite]"
       ></motion.span>
       
-      <div className="hidden lg:block h-[70vh] bg-black">
+      <div className="hidden lg:block h-[80vh] bg-black mx-20">
         {/* <Progressbar/> */}
+        <div className="flex justify-end gap-8">
+          <div className="flex gap-12">
+          <div id="ball1" className="w-12">
+        <img className="h-12 mt-4  " src={ball} alt="" />
+      </div>
+          </div>
         <div
           id="box1"
-          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4 absolute right-40 top-[3250px] pt-8 h-[25vh] text-white"
-        ><div id="ball1" className="w-12">
-        <img className="h-12 absolute -left-20 " src={ball} alt="" />
-      </div>
+          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  right-40 top-[3250px] pt-8 h-[25vh] text-white"
+        >
           <div className="text-gold text-4xl pb-4 font-cabinet-bold ">
             No location Barrier: <br />
           </div>
@@ -99,15 +103,21 @@ const WhyCricArena = () => {
           players enhance their skills, grow, and embrace new challenges,
           promoting sportsmanship and development.
         </div>
+        </div>
+        
        
+        <div className="flex justify-start gap-8">
+          <div className="flex gap-12">
+          <div id="ball1" className="w-12">
+        <img className="h-12 mt-4  " src={ball} alt="" />
+      </div>
+          </div>
         <div
           id="box2"
-          className="bg-goldx w-[700px] rounded-3xl texl-3xl font-product-sans font-semibold px-4 absolute left-40 top-[3450px] pt-8 h-[25vh] text-white"
-        ><div id="ball1" className="w-12">
-        <img className="h-12 absolute -left-20 " src={ball} alt="" />
-      </div>
+          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  right-40 top-[3250px] pt-8 h-[25vh] text-white"
+        >
           <div className="text-gold text-4xl pb-4 font-cabinet-bold ">
-            Seamless Managment: <br />
+          Seamless Managment: <br />
           </div>
           At cricArena, we handle every aspect of tournament management, from
           booking grounds and coordinating hotel accommodations to organizing
@@ -116,20 +126,26 @@ const WhyCricArena = () => {
           the game while we manage the logistics, creating a smooth and
           professional tournament environment.
         </div>
+        </div>
+        <div className="flex justify-end gap-8">
+          <div className="flex gap-12">
+          <div id="ball1" className="w-12">
+        <img className="h-12 mt-4  " src={ball} alt="" />
+      </div>
+          </div>
         <div
           id="box3"
-          className="bg-goldx w-[700px] rounded-3xl texl-3xl font-product-sans font-semibold px-4 absolute right-40 top-[3650px] pt-8 h-[25vh] text-white"
-        ><div id="ball1" className="w-12">
-        <img className="h-12 absolute -left-20 " src={ball} alt="" />
-      </div>
+          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  right-40 top-[3250px] pt-8 h-[25vh] text-white"
+        >
           <div className="text-gold text-4xl pb-4 font-cabinet-bold ">
-            Live match Updates: <br />
+          Live match Updates: <br />
           </div>
           At cricArena, we bring the excitement of the game straight to your
           screen with real-time live match updates. Whether you're following
           your favorite local team or tracking an interstate tournament, our
           live scoreboard and scorecard keep you in the loop from the first ball
           to the final over.
+        </div>
         </div>
         
       </div>
