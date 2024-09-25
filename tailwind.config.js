@@ -37,7 +37,7 @@ export default {
         "banner": "url('/src/assets/banner1.png')",
         "banner2": "url('/src/assets/banner2.png')",
         "banner3": "url('/src/assets/banner3.png')",
-        "bann": "url('src/assets/bann.png')",
+        "bann": "url('/src/assets/bann.png')",
       },
       keyframes: {
         animate: {
