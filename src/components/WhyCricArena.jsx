@@ -69,7 +69,7 @@ const WhyCricArena = () => {
   });
 
   return (
-    <div className="h-fit overflow-hidden">
+    <div className="h-fit ">
       <div id="heading1" className="md:ml-28 ml:4 lg:text-6xl text-3xl text-gold  font-cabinet-extrabold font-bold lg:mt-8 mt-4 w-[250px] lg:w-[470px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl  bg-black">
         <span className="text-white md:mr-2">Why  </span>   CricArena?
       </div>
