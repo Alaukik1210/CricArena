@@ -84,7 +84,7 @@ const WhyCricArena = () => {
       
       <div className="hidden lg:block h-[80vh] bg-black mx-20">
         {/* <Progressbar/> */}
-        <div className="flex justify-end gap-8">
+        <div className="flex justify-end mb-4 gap-8">
           <div className="flex gap-12">
           <div id="ball1" className="w-12">
         <img className="h-12 mt-4  " src={ball} alt="" />
@@ -106,7 +106,7 @@ const WhyCricArena = () => {
         </div>
         
        
-        <div className="flex justify-start gap-8">
+        <div className="flex justify-start mb-4 gap-8">
           <div className="flex gap-12">
           <div id="ball1" className="w-12">
         <img className="h-12 mt-4  " src={ball} alt="" />
@@ -127,7 +127,7 @@ const WhyCricArena = () => {
           professional tournament environment.
         </div>
         </div>
-        <div className="flex justify-end gap-8">
+        <div className="flex justify-end mb-4 gap-8">
           <div className="flex gap-12">
           <div id="ball1" className="w-12">
         <img className="h-12 mt-4  " src={ball} alt="" />
