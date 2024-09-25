@@ -92,7 +92,7 @@ const WhyCricArena = () => {
           </div>
         <div
           id="box1"
-          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  right-40 top-[3250px] pt-8 h-[25vh] text-white"
+          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  pb-4 pt-8  h-fit text-white"
         >
           <div className="text-gold text-4xl pb-4 font-cabinet-bold ">
             No location Barrier: <br />
@@ -114,7 +114,7 @@ const WhyCricArena = () => {
           </div>
         <div
           id="box2"
-          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  right-40 top-[3250px] pt-8 h-[25vh] text-white"
+          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4 pb-4 pt-8  h-fit text-white"
         >
           <div className="text-gold text-4xl pb-4 font-cabinet-bold ">
           Seamless Managment: <br />
@@ -135,7 +135,7 @@ const WhyCricArena = () => {
           </div>
         <div
           id="box3"
-          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4  right-40 top-[3250px] pt-8 h-[25vh] text-white"
+          className="bg-goldx w-[700px] rounded-3xl texl-3xl  font-product-sans font-semibold px-4 pb-4 pt-8 h-fit text-white"
         >
           <div className="text-gold text-4xl pb-4 font-cabinet-bold ">
           Live match Updates: <br />
