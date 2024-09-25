@@ -48,7 +48,7 @@ const Joinus = () => {
         initial={{ x: -100, opacity: 0 }}
         animate={inViewContent ? { x: 0, opacity: 1 } : { x: 0 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
-        className="bg-goldx text-white w-full md:w-[950px] font-product-sans font-bold p-8 md:p-12 md:ml-28 rounded-3xl mt-8 md:mt-20"
+        className="bg-goldx text-white w-full md:w-[750px] font-product-sans font-bold p-8 md:p-12 md:ml-28 rounded-3xl mt-8 md:mt-20"
       >
         <div className="flex flex-row md:flex-row justify-between gap-12 mb-8">
           <img className="h-12 w-12 md:h-20 md:w-20" src={helmet} alt="" />
