@@ -46,7 +46,7 @@ const Join = () => {
         
       <div className='flex justify-evenly text-xl font-semibold text-white font-product-sans '>
        
-        <div id='text' className='mt-40 p-8 text-left w-[1500px] bg-goldx rounded-3xl  h-[30vh] ml-28 z-40'>
+        <div id='text' className='mt-40 p-8 text-left w-[1500px] bg-goldx rounded-3xl  h-fit mb-8 ml-28 z-40'>
           <div className='font-cabinet-medium text-4xl  text-gold mb-8'>
           Together We Rise, Together We Play!
           </div>
