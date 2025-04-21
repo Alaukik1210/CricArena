@@ -34,19 +34,19 @@ CricArena is a web-based platform built to simplify cricket tournament managemen
 
 Frontend Setup:
 
-cd client
-npm install
-npm run dev
+-cd client
+-npm install
+-npm run dev
 
 Backend Setup:
 
-cd server
-npm install
-npx prisma generate
-npx prisma migrate dev
-npm start
+-cd server
+-npm install
+-npx prisma generate
+-npx prisma migrate dev
+-npm start
 
 
 .env
-DATABASE_URL=your_postgres_url
-JWT_SECRET=your_jwt_secret
+-DATABASE_URL=your_postgres_url
+-JWT_SECRET=your_jwt_secret
