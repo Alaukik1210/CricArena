@@ -15,7 +15,7 @@ const PlayerProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/v1/user/profile/${user.id}`);
+        const response = await axios.get(`http://localhost:8080/api/v1/user/profile/${user.user.id}`);
         setProfile(response.data.profile);
       } catch (error) {
         console.error("Error fetching player profile:", error);
