@@ -3,20 +3,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
-// import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
 const PlayerProfile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
    const { user } = useSelector((store) => store.user);
+   const { id } = useParams();
   
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/v1/user/profile/${user.user.id}`);
+        const response = await axios.get(`http://localhost:8080/api/v1/user/profile/${user.id}`);
         setProfile(response.data.profile);
+        console.log("id is",user)
       } catch (error) {
         console.error("Error fetching player profile:", error);
       } finally {
@@ -25,7 +27,7 @@ const PlayerProfile = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [id]);
 
   if (loading) {
     return (
@@ -107,12 +109,30 @@ const PlayerProfile = () => {
             alt="Profile"
             className="h-16 w-16 rounded-full object-cover border-2 border-[#FFD070] shadow-md"
           />
-          <div>
-            <h2 className="text-2xl font-bold text-[#FFD070]">{user.fullname}</h2>
-            <p className="text-sm text-gray-400">{profile.bio}</p>
-          </div>
+         <div className="space-y-2">
+  <h2 className="text-2xl font-bold text-[#FFD070]">{user.fullname}</h2>
+  <p className="text-sm text-gray-400 italic">{profile.bio}</p>
+  <p className="text-sm text-gray-300">
+    <span className="font-semibold text-[#FFD070]">Location:</span> {user.city}, {user.state}
+  </p>
+  <p className="text-sm text-gray-300">
+    <span className="font-semibold text-[#FFD070]">Email:</span> {user.email}
+  </p>
+  <p className="text-sm text-gray-300">
+    <span className="font-semibold text-[#FFD070]">Phone:</span> {user.phoneNumber}
+  </p>
+  <p className="text-sm text-gray-300">
+    <span className="font-semibold text-[#FFD070]">Batting Style:</span> {profile.battingStyle}
+  </p>
+  <p className="text-sm text-gray-300">
+    <span className="font-semibold text-[#FFD070]">Bowling Style:</span> {profile.bowlingStyle}
+  </p>
+  <p className="text-sm text-gray-300">
+    <span className="font-semibold text-[#FFD070]">Skills:</span> {profile.skills}
+  </p>
+</div>
         </div>
-        <div className="flex items-center gap-4 mt-4 md:mt-0">
+        <div className="flex items-center gap-4 mt-4 pb-44 md:mt-0">
           <Button className="bg-[#FFD070] text-black font-bold hover:bg-[#FFC857] shadow-md">
             + New Match
           </Button>

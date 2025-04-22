@@ -122,7 +122,7 @@ const Navbar = () => {
                     <Button
                       variant="link"
                       className="text-[#FFD070]"
-                      onClick={() => navigate("/profile")}
+                      onClick={() => navigate(`/profile/${user.id}`)}
                     >
                       View Profile
                     </Button>

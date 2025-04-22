@@ -25,6 +25,7 @@ export default function RegisterTour() {
     }
   };
 
+
   useEffect(() => {
     const fetchTournamentDetails = async () => {
       try {
@@ -43,19 +44,31 @@ export default function RegisterTour() {
 
   const onSubmitHandler = async () => {
     if (!selectedTeam) return;
-
+  
     try {
-      const response = await axios.post(`http://localhost:8080/api/v1/owner/tours/${id}/register`, {
-        teamName: selectedTeam,
+      // Find the selected team's ID
+      const selectedTeamObj = teams.find((team) => team.name === selectedTeam);
+      if (!selectedTeamObj) {
+        alert("Selected team not found.");
+        return;
+      }
+  
+      const teamId = selectedTeamObj.id; // Get the team ID
+  
+      // Send the POST request with tournamentId and teamId
+      const response = await axios.post(`http://localhost:8080/api/v1/owner/tours/register`, {
+        tournamentId: id,
+        teamId: teamId,
       });
+  
       alert("Team registered successfully!");
-
+  
       // Update joined teams locally
-      const updatedTeams = tournamentDetails.teams.map(team =>
-        team.name === selectedTeam ? { ...team, joined: true } : team
+      const updatedTeams = tournamentDetails.teams.map((team) =>
+        team.id === teamId ? { ...team, joined: true } : team
       );
       setTournamentDetails({ ...tournamentDetails, teams: updatedTeams });
-
+  
       setSelectedTeam("");
     } catch (error) {
       console.error("Error registering team:", error);
@@ -64,7 +77,7 @@ export default function RegisterTour() {
   };
 
   if (loading) {
-    return <p className="text-white text-center mt-20">Loading tournament details...</p>;
+    return <div className="text-white text-center h-40 w-80 mt-80 items-center ml-96 pl-96">Loading tournament details...</div>;
   }
 
   if (!tournamentDetails) {
