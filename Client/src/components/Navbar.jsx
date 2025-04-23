@@ -100,7 +100,7 @@ const Navbar = () => {
                   <AvatarImage
                     src={
                       user?.profile?.profilePhoto ||
-                      "https://via.placeholder.com/40"
+                      "https://static.vecteezy.com/system/resources/previews/053/296/128/non_2x/cricket-player-wearing-protective-helmet-holding-wooden-bat-in-monochrome-simple-minimalistic-in-black-ink-drawing-on-white-background-vector.jpg"
                     }
                     alt="User Avatar"
                   />
@@ -112,7 +112,7 @@ const Navbar = () => {
                     <AvatarImage
                       src={
                         user?.profile?.profilePhoto ||
-                        "https://via.placeholder.com/40"
+                        "https://static.vecteezy.com/system/resources/previews/053/296/128/non_2x/cricket-player-wearing-protective-helmet-holding-wooden-bat-in-monochrome-simple-minimalistic-in-black-ink-drawing-on-white-background-vector.jpg"
                       }
                       alt="User Avatar"
                     />

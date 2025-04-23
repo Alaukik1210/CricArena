@@ -11,12 +11,14 @@ import CricketScoreboard from './components/CricketScoreboard.jsx'
 import Login from './components/Login.jsx'
 import SignUp from './components/SignUp.jsx'
 import { Provider } from 'react-redux'
-import store from './redux/store.js'
+// import store from './redux/store.js'
 import Tours from './components/Tours.jsx'
 import PlayerProfile from './components/PlayerProfile.jsx'
 import Grounds from './components/Grouds.jsx'
 import About_cric from './components/About_cric.jsx'
 import RegisterTour from './components/RegisterTour.jsx'
+import { PersistGate } from 'redux-persist/integration/react'
+import store, { persistor } from './redux/store.js';
 
 const router = createBrowserRouter([
   {
@@ -88,7 +90,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-   <RouterProvider router={router}/>
+      <PersistGate loading={null} persistor={persistor}>
+        <RouterProvider router={router} />
+      </PersistGate>
     </Provider>
   </StrictMode>
 )
