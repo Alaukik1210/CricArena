@@ -3,19 +3,25 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { Link } from "react-scroll";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { User2, LogOut } from "lucide-react";
+import axios from "axios";
+import { USER_API_END_POINT } from "@/utils/constants";
+import { setUser } from "@/redux/userSlice";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useSelector((store) => store.user);
+  const dispatch = useDispatch();
 
   const logoutHandler = () => {
-    console.log("User logged out");
+    const res = axios.post(`${USER_API_END_POINT}/logout`);
+    dispatch(setUser(null));
+    navigate('/')
   };
 
   return (

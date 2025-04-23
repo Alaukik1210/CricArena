@@ -2,11 +2,34 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+declare module "express-serve-static-core" {
+    interface Request { ownerId: string }
+}
 
-// Create a new ground
-export const createGround = async (req: Request, res: Response) => {
+export const createGround = async (req: any, res: Response) => {
     try {
-        const { name, location, rating, bookings, pitchType, facilities, pricePerMatch, ownerId } = req.body;
+        const userId = req.userId;
+        
+        const user =await prisma.user.findUnique({
+            where:{
+                id:userId,
+                
+            },
+            include:{
+                ownerProfile:true
+            }
+        })
+        // console.log("erteftf",user);
+        if(!user){
+            res.status(404).json({
+                message:"Plese login first",
+                success:false
+            })
+            return
+        }
+        const ownerId = user?.ownerProfile?.id;
+       
+        const { name, location, rating, bookings, pitchType, facilities, pricePerMatch } = req.body;
 
         if (!name || !location || !pitchType || !pricePerMatch) {
              res.status(400).json({
@@ -17,6 +40,7 @@ export const createGround = async (req: Request, res: Response) => {
         }
 
         const newGround = await prisma.ground.create({
+           
             data: {
                 name,
                 location,
@@ -25,9 +49,10 @@ export const createGround = async (req: Request, res: Response) => {
                 pitchType,
                 facilities,
                 pricePerMatch,
-                ownerId,
+               owner:{connect:{id:ownerId}}
             },
         });
+        
 
          res.status(201).json({
             message: "Ground created successfully",

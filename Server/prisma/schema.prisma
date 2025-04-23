@@ -105,8 +105,8 @@ model Ground {
   pitchType       String   
   facilities      String[] 
   pricePerMatch   Int      
-ownerId         String
 owner           OwnerProfile @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+ownerId         String
 createdAt       DateTime @default(now())
 updatedAt       DateTime @updatedAt
 }
