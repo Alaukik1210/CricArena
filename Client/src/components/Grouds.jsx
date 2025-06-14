@@ -6,18 +6,58 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon, StarIcon, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const fallbackGrounds = [
+  {
+    name: "Sunrise Cricket Ground",
+    location: "Sector 21, New Delhi",
+    rating: 4.5,
+    bookings: 120,
+    facilities: ["Floodlights", "Parking", "Changing Rooms"],
+    pricePerMatch: 2500,
+    tag: "Popular",
+    tagColor: "green",
+  },
+  {
+    name: "Greenfield Arena",
+    location: "MG Road, Bengaluru",
+    rating: 4.2,
+    bookings: 98,
+    facilities: ["Seating", "Cafeteria", "Restrooms"],
+    pricePerMatch: 2000,
+    tag: "New",
+    tagColor: "yellow",
+  },
+  {
+    name: "Victory Sports Complex",
+    location: "Andheri, Mumbai",
+    rating: 4.8,
+    bookings: 150,
+    facilities: ["Floodlights", "Parking", "First Aid"],
+    pricePerMatch: 3000,
+    tag: "Top Rated",
+    tagColor: "blue",
+  },
+];
+
 
 export default function Grounds() {
   const [grounds, setGrounds] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate()
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
         const response = await axios.get("http://localhost:8080/api/v1/ground/all");
-        setGrounds(response.data.grounds);
+       if (response.data && response.data.grounds && response.data.grounds.length > 0) {
+          setGrounds(response.data.grounds);
+        } else {
+          setGrounds(fallbackGrounds);
+        }
       } catch (error) {
         console.error("Error fetching grounds:", error);
+        setGrounds(fallbackGrounds);
       } finally {
         setLoading(false);
       }
@@ -108,9 +148,12 @@ export default function Grounds() {
                 ))}
               </ul>
               <div className="flex justify-between items-center">
-                <div className="text-lg font-semibold">₹{ground.pricePerMatch.toLocaleString()} <span className="text-sm font-normal">/match</span></div>
-                <Button className="bg-green-500 text-white hover:bg-green-600">Book Now</Button>
-              </div>
+  <div className="text-lg font-semibold">
+    ₹{ground.pricePerMatch.toLocaleString()} 
+    <span className="text-sm font-normal">/match</span>
+  </div>
+  
+</div>
             </CardContent>
           </Card>
         ))}

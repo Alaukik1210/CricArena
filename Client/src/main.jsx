@@ -19,6 +19,7 @@ import About_cric from './components/About_cric.jsx'
 import RegisterTour from './components/RegisterTour.jsx'
 import { PersistGate } from 'redux-persist/integration/react'
 import store, { persistor } from './redux/store.js';
+// import { StripeCheckoutBtn } from './components/StripeCheckoutBtn.jsx'
 
 const router = createBrowserRouter([
   {
@@ -80,7 +81,11 @@ const router = createBrowserRouter([
      {
       path:"/register/:id",
       element:<RegisterTour/>
-     }
+     },
+    //  {
+    //   path:"/payment",
+    //   element:<StripeCheckoutBtn/>
+    //  }
     ]
 
   }

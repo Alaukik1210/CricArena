@@ -9,6 +9,42 @@ import {
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const fallbackMatches = [
+  {
+    id: 1,
+    title: "Delhi Premier League",
+    description: "A competitive league for city’s best cricket teams.",
+    venue: "Feroz Shah Kotla, Delhi",
+    tourStartsDate: "2025-07-10",
+    tourEndDate: "2025-07-20",
+    spots: 12,
+    entryFee: 2000,
+    type: "League",
+  },
+  {
+    id: 2,
+    title: "Summer Training Camp",
+    description: "Improve your skills with professional coaches.",
+    venue: "Chinnaswamy Stadium, Bengaluru",
+    tourStartsDate: "2025-07-15",
+    tourEndDate: "2025-07-25",
+    spots: 30,
+    entryFee: 1000,
+    type: "Training",
+  },
+  {
+    id: 3,
+    title: "Mumbai Monsoon Tournament",
+    description: "Rain or shine, cricket goes on!",
+    venue: "Wankhede Stadium, Mumbai",
+    tourStartsDate: "2025-08-01",
+    tourEndDate: "2025-08-10",
+    spots: 16,
+    entryFee: 2500,
+    type: "Tournament",
+  },
+];
+
 export default function Tours() {
   const [matches, setMatches] = useState([]);
   const [filteredMatches, setFilteredMatches] = useState([]);
@@ -22,10 +58,17 @@ export default function Tours() {
       try {
         const response = await axios.get("http://localhost:8080/api/v1/owner/tours/getTours");
         const tournaments = response.data.tournaments || [];
-        setMatches(tournaments);
-        setFilteredMatches(tournaments);
+        if (tournaments.length > 0) {
+          setMatches(tournaments);
+          setFilteredMatches(tournaments);
+        } else {
+          setMatches(fallbackMatches);
+          setFilteredMatches(fallbackMatches);
+        }
       } catch (error) {
         console.error("Failed to fetch tours:", error);
+        setMatches(fallbackMatches);
+        setFilteredMatches(fallbackMatches);
       } finally {
         setLoading(false);
       }

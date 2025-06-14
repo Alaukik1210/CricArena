@@ -60,8 +60,8 @@ const Hero = () => {
         >
           <div className="flex justify-center sm:justify-start gap-4 sm:gap-6 text-xl sm:text-2xl md:text-3xl font-bold text-orangex">
             <span>10+ <br /> <span className="text-lg sm:text-xl font-semibold italic text-white">Cities</span></span>
-            <span>50+ <br /> <span className="text-lg sm:text-xl font-semibold italic text-white">Tournaments</span></span>
-            <span>500+ <br /> <span className="text-lg sm:text-xl font-semibold italic text-white">Players</span></span>
+            <span>15+ <br /> <span className="text-lg sm:text-xl font-semibold italic text-white">Tournaments</span></span>
+            <span>200+ <br /> <span className="text-lg sm:text-xl font-semibold italic text-white">Players</span></span>
           </div>
         </motion.div>
         </div>

@@ -3,6 +3,20 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaRupeeSign } from "react-icons/fa";
 
+// Hardcoded fallback tournament data
+const fallbackTournament = {
+  title: "CricArena Summer Cup",
+  subtitle: "Open for all age groups",
+  location: "Sector 21, New Delhi",
+  startDate: "2025-07-01",
+  endDate: "2025-07-10",
+  spots: 16,
+  entryFee: 1500,
+  description:
+    "Join the most exciting summer cricket tournament in the city! Compete with the best teams and win amazing prizes. All matches will be played under floodlights with professional umpires.",
+};
+
+
 export default function TournamentDetails() {
   const { id } = useParams(); // Get tournament ID from URL
   const [tournament, setTournament] = useState(null);
@@ -11,12 +25,22 @@ export default function TournamentDetails() {
   useEffect(() => {
     // Fetch tournament details from the backend
     const fetchTournament = async () => {
-      try {
+       try {
         const response = await fetch(`http://localhost:8080/api/tournaments/${id}`);
-        const data = await response.json();
-        setTournament(data);
+        if (response.ok) {
+          const data = await response.json();
+          // If data is valid and has a title, use it; else fallback
+          if (data && data.title) {
+            setTournament(data);
+          } else {
+            setTournament(fallbackTournament);
+          }
+        } else {
+          setTournament(fallbackTournament);
+        }
       } catch (error) {
         console.error("Error fetching tournament details:", error);
+        setTournament(fallbackTournament);
       } finally {
         setLoading(false);
       }
