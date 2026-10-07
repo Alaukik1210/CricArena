@@ -1,16 +1,49 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
-import { Link } from "react-scroll";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { User2, LogOut } from "lucide-react";
-import axios from "axios";
+import { LayoutDashboard, LogOut, MapPinned, Radar, Trophy, User2, Users } from "lucide-react";
+import logo from "../assets/logo.png";
 import { USER_API_END_POINT } from "@/utils/constants";
-import { setUser } from "@/redux/userSlice";
+import { clearUser } from "@/redux/userSlice";
+
+const publicLinks = [
+  { label: "Home", href: "/" },
+  { label: "Discover", href: "/discover" },
+  { label: "Rooms", href: "/rooms" },
+  { label: "Grounds", href: "/grounds" },
+  { label: "Tournaments", href: "/tournaments" },
+];
+
+const ownerLinks = [
+  { label: "Owner", href: "/owner/analytics", icon: LayoutDashboard },
+  { label: "Organizer", href: "/organizer/analytics", icon: Trophy },
+];
+
+const userAvatarFallback =
+  "https://static.vecteezy.com/system/resources/previews/053/296/128/non_2x/cricket-player-wearing-protective-helmet-holding-wooden-bat-in-monochrome-simple-minimalistic-in-black-ink-drawing-on-white-background-vector.jpg";
+
+const NavLinks = ({ navigate, onNavigate }) => (
+  <>
+    {publicLinks.map((item) => (
+      <button
+        key={item.label}
+        type="button"
+        className="text-sm font-semibold tracking-wide text-white/80 transition hover:text-[#f0ddb0]"
+        onClick={() => {
+          navigate(item.href);
+          onNavigate?.();
+        }}
+      >
+        {item.label}
+      </button>
+    ))}
+  </>
+);
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -18,210 +51,206 @@ const Navbar = () => {
   const { user } = useSelector((store) => store.user);
   const dispatch = useDispatch();
 
-  const logoutHandler = () => {
-    const res = axios.post(`${USER_API_END_POINT}/logout`);
-    dispatch(setUser(null));
-    navigate('/')
+  const logoutHandler = async () => {
+    try {
+      await axios.post(`${USER_API_END_POINT}/logout`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      dispatch(clearUser());
+      navigate("/");
+    }
   };
 
   return (
-    <div className="z-50 fixed w-full top-0 bg-black">
-      {/* Desktop Navbar */}
+    <div className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 md:px-6">
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
+        initial={{ opacity: 0, y: -24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="hidden md:flex justify-between items-center p-6 text-white"
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-[28px] border border-white/10 bg-[#101416]/90 px-4 py-4 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl md:px-6"
       >
-        {/* Logo */}
-        <Link
-          to="top"
-          spy={true}
-          smooth={true}
-          offset={-200}
-          duration={500}
-          className="flex gap-2 items-center cursor-pointer ml-8"
-        >
-          <motion.img
-            src={logo}
-            alt="Logo"
-            className="h-12 md:h-16"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
-          <motion.div
-            className="text-white font-bold text-3xl md:text-5xl"
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
-          >
-            Cric
-          </motion.div>
-          <motion.div
-            className="text-orangex font-bold text-3xl md:text-5xl"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
-          >
-            Arena
-          </motion.div>
-        </Link>
+        <button type="button" className="flex items-center gap-3" onClick={() => navigate("/")}>
+          <img src={logo} alt="CricArena" className="h-10 w-10 rounded-full border border-white/10 object-cover" />
+          <div className="flex items-baseline gap-1">
+            <span className="font-cabinet-black text-2xl tracking-[0.18em] text-white">CRIC</span>
+            <span className="font-cabinet-black text-2xl tracking-[0.18em] text-[#d8b56d]">ARENA</span>
+          </div>
+        </button>
 
-        {/* Navigation Links */}
-        <div className="flex gap-6 mr-16 text-xl font-bold pt-4 text-white">
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="cursor-pointer text-white hover:text-orangex"
-            onClick={() => navigate(`/`)}
-          >
-            Home
-          </motion.div>
-          {["About", "Tournaments", "Grounds"].map((item, index) => (
-            <motion.div
-              key={item}
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 * index }}
-              className="cursor-pointer text-white hover:text-orangex"
-              onClick={() => navigate(`/${item.toLowerCase()}`)}
-            >
-              {item}
-            </motion.div>
-          ))}
+        <div className="hidden items-center gap-6 lg:flex">
+          <NavLinks navigate={navigate} />
+        </div>
 
-          {/* User Avatar or Login Button */}
+        <div className="hidden items-center gap-3 lg:flex">
+          {user?.role === "OWNER" &&
+            ownerLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-[#d8b56d]/50 hover:text-[#f0ddb0]"
+                  onClick={() => navigate(item.href)}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            })}
+
           {user ? (
             <Popover>
               <PopoverTrigger asChild>
-                <Avatar className="cursor-pointer">
-                  <AvatarImage
-                    src={
-                      user?.profile?.profilePhoto ||
-                      "https://static.vecteezy.com/system/resources/previews/053/296/128/non_2x/cricket-player-wearing-protective-helmet-holding-wooden-bat-in-monochrome-simple-minimalistic-in-black-ink-drawing-on-white-background-vector.jpg"
-                    }
-                    alt="User Avatar"
-                  />
-                </Avatar>
+                <button type="button" className="rounded-full border border-white/10 p-1">
+                  <Avatar className="h-10 w-10 cursor-pointer">
+                    <AvatarImage src={user?.profile?.profilePhoto || userAvatarFallback} alt="User Avatar" />
+                  </Avatar>
+                </button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 bg-[#030b18] shadow-lg outline-none rounded-lg border border-gray-700">
-                <div className="flex gap-4 items-center">
-                  <Avatar className="cursor-pointer">
-                    <AvatarImage
-                      src={
-                        user?.profile?.profilePhoto ||
-                        "https://static.vecteezy.com/system/resources/previews/053/296/128/non_2x/cricket-player-wearing-protective-helmet-holding-wooden-bat-in-monochrome-simple-minimalistic-in-black-ink-drawing-on-white-background-vector.jpg"
-                      }
-                      alt="User Avatar"
-                    />
+              <PopoverContent className="w-80 rounded-3xl border border-white/10 bg-[#101416] p-5 shadow-xl">
+                <div className="flex gap-4">
+                  <Avatar className="h-14 w-14">
+                    <AvatarImage src={user?.profile?.profilePhoto || userAvatarFallback} alt="User Avatar" />
                   </Avatar>
                   <div>
-                    <h3 className="font-medium text-white">{user.fullname}</h3>
-                    <p className="text-sm text-gray-400">{user.role}</p>
+                    <h3 className="text-lg font-semibold text-white">{user.fullname}</h3>
+                    <p className="text-sm text-white/60">{user.role}</p>
+                    <p className="mt-2 text-sm text-white/60">
+                      {user.city}, {user.state}
+                    </p>
                   </div>
                 </div>
-                {user.role === "PLAYER" && (
-                  <div className="flex mt-4 items-center gap-2">
-                    <User2 className="text-[#FFD070]" />
-                    <Button
-                      variant="link"
-                      className="text-[#FFD070]"
-                      onClick={() => navigate(`/profile/${user.id}`)}
-                    >
-                      View Profile
-                    </Button>
-                  </div>
-                )}
-                <div className="flex mt-4 items-center gap-2">
-                  <LogOut className="text-red-500" />
-                  <Button
-                    onClick={logoutHandler}
-                    variant="link"
-                    className="text-red-500"
+
+                <div className="mt-5 grid gap-2">
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white transition hover:border-[#d8b56d]/50 hover:text-[#f0ddb0]"
+                    onClick={() => navigate(`/profile/${user.id}`)}
                   >
-                    Logout
-                  </Button>
+                    <User2 className="h-4 w-4 text-[#d8b56d]" />
+                    <span className="text-sm font-semibold">Profile</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white transition hover:border-[#d8b56d]/50 hover:text-[#f0ddb0]"
+                    onClick={() => navigate("/discover")}
+                  >
+                    <MapPinned className="h-4 w-4 text-[#d8b56d]" />
+                    <span className="text-sm font-semibold">Nearby Discovery</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white transition hover:border-[#d8b56d]/50 hover:text-[#f0ddb0]"
+                    onClick={() => navigate("/rooms")}
+                  >
+                    <Radar className="h-4 w-4 text-[#d8b56d]" />
+                    <span className="text-sm font-semibold">Rooms</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white transition hover:border-[#d8b56d]/50 hover:text-[#f0ddb0]"
+                    onClick={() => navigate("/bookings")}
+                  >
+                    <Users className="h-4 w-4 text-[#d8b56d]" />
+                    <span className="text-sm font-semibold">Bookings</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-left text-red-300 transition hover:bg-red-500/20"
+                    onClick={logoutHandler}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="text-sm font-semibold">Logout</span>
+                  </button>
                 </div>
               </PopoverContent>
             </Popover>
           ) : (
-            <motion.button
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 1 }}
+            <Button
               onClick={() => navigate("/login")}
-              className="px-6 bg-[#FFD070] text-black rounded-3xl border-2 border-orangex hover:bg-white hover:text-[#FFD070] transition"
+              className="rounded-full bg-[#d8b56d] px-5 py-2 text-black hover:bg-[#f0ddb0]"
             >
-              LOGIN
-            </motion.button>
+              Login
+            </Button>
           )}
         </div>
-      </motion.div>
 
-      {/* Mobile Navbar */}
-      <div className="flex md:hidden justify-between items-center p-4">
-        <div className="flex gap-2 items-center">
-          <motion.div
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="text-white font-bold text-3xl"
-          >
-            Cric
-          </motion.div>
-          <motion.img
-            src={logo}
-            alt="Logo"
-            className="h-12"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          />
-          <motion.div
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="text-orangex font-bold text-3xl"
-          >
-            Arena
-          </motion.div>
-        </div>
-        <motion.button
-          className="text-white text-2xl"
-          onClick={() => setMenuOpen(!menuOpen)}
-          whileTap={{ scale: 0.9 }}
+        <button
+          type="button"
+          className="rounded-full border border-white/10 bg-white/5 p-3 text-white lg:hidden"
+          onClick={() => setMenuOpen((prev) => !prev)}
         >
           ☰
-        </motion.button>
-      </div>
+        </button>
+      </motion.div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="md:hidden bg-black w-full flex flex-col text-white p-4 text-lg"
-        >
-          {["Home", "About", "Tournaments", "Contact"].map((item, index) => (
-            <motion.div
-              key={item}
-              initial={{ y: -10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3, ease: "easeOut", delay: 0.1 * index }}
-              className="py-2 cursor-pointer hover:text-orangex"
-              onClick={() => {
-                setMenuOpen(false);
-                navigate(`/${item.toLowerCase()}`);
-              }}
-            >
-              {item}
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+      {menuOpen ? (
+        <div className="mx-auto mt-3 max-w-7xl rounded-[28px] border border-white/10 bg-[#101416]/95 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:hidden">
+          <div className="grid gap-3">
+            <NavLinks navigate={navigate} onNavigate={() => setMenuOpen(false)} />
+            {user?.role === "OWNER" &&
+              ownerLinks.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white"
+                  onClick={() => {
+                    navigate(item.href);
+                    setMenuOpen(false);
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            {user ? (
+              <>
+                <button
+                  type="button"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white"
+                  onClick={() => {
+                    navigate(`/profile/${user.id}`);
+                    setMenuOpen(false);
+                  }}
+                >
+                  Profile
+                </button>
+                <button
+                  type="button"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white"
+                  onClick={() => {
+                    navigate("/bookings");
+                    setMenuOpen(false);
+                  }}
+                >
+                  Bookings
+                </button>
+                <button
+                  type="button"
+                  className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-left text-sm font-semibold text-red-300"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logoutHandler();
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="rounded-2xl bg-[#d8b56d] px-4 py-3 text-left text-sm font-semibold text-black"
+                onClick={() => {
+                  navigate("/login");
+                  setMenuOpen(false);
+                }}
+              >
+                Login
+              </button>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

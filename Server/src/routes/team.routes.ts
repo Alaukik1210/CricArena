@@ -8,15 +8,34 @@ import {
     getTeamMembers,
     addPlayerToTeam,
 } from "../controller/Team.controller";
+import { authentication } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import {
+    addPlayerSchema,
+    createTeamSchema,
+    teamIdParamSchema,
+    updateTeamSchema,
+} from "../modules/teams/team.schemas";
 
 const router = express.Router();
 
-router.post("/create", createTeam);
+router.post("/create", authentication, validate(createTeamSchema), createTeam);
 router.get("/all", getAllTeams);
-router.get("/:id", getTeamById);
-router.put("/update/:id", updateTeam);
-router.delete("/delete/:id", deleteTeam);
-router.get("/:id/members", getTeamMembers);
-router.post("/addPlayer", addPlayerToTeam);
+router.get("/:id", validate(teamIdParamSchema, "params"), getTeamById);
+router.put(
+    "/update/:id",
+    authentication,
+    validate(teamIdParamSchema, "params"),
+    validate(updateTeamSchema),
+    updateTeam,
+);
+router.delete(
+    "/delete/:id",
+    authentication,
+    validate(teamIdParamSchema, "params"),
+    deleteTeam,
+);
+router.get("/:id/members", validate(teamIdParamSchema, "params"), getTeamMembers);
+router.post("/addPlayer", authentication, validate(addPlayerSchema), addPlayerToTeam);
 
 export default router;

@@ -1,4 +1,3 @@
-import React from "react";
 import CricketStumps from "./CricketStumps";
 import helmet from "../assets/helmet.png";
 import wicket from "../assets/wickets.png";

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaRupeeSign } from "react-icons/fa";
+import { TOUR_API_END_POINT } from "@/utils/constants";
 
 // Hardcoded fallback tournament data
 const fallbackTournament = {
@@ -26,7 +27,7 @@ export default function TournamentDetails() {
     // Fetch tournament details from the backend
     const fetchTournament = async () => {
        try {
-        const response = await fetch(`http://localhost:8080/api/tournaments/${id}`);
+        const response = await fetch(`${TOUR_API_END_POINT}/${id}`);
         if (response.ok) {
           const data = await response.json();
           // If data is valid and has a title, use it; else fallback

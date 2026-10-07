@@ -1,27 +1,45 @@
 # 🏏 CricArena
 
-CricArena is a web-based platform built to simplify cricket tournament management, team coordination, and real-time ground booking. Whether you're a player, organizer, or admin — CricArena provides an intuitive interface to manage matches, register teams, and book grounds seamlessly.
+CricArena is the **coordination layer for local cricket** — a three-sided platform connecting players, ground owners, and tournament organizers. It turns *"I want to play"* into an actual eleven, on an actual pitch, at an actual time, then books and pays for the ground in the same flow.
+
+> **Status:** in active development, pre-launch. See [docs/PLAN.md](docs/PLAN.md) for the build plan, verified gap analysis, and roadmap.
 
 ---
 
 ## 🚀 Features
 
-- 👥 **User Roles**: Supports Admin, Player, and Organizer dashboards
-- 📋 **Tournament Registration**: View and register for active tournaments
-- ⏱ **Real-Time Ground Booking**: Interactive slot-based ground booking system with live updates using Socket.IO
-- 📊 **Team and Player Management**: Add teams, assign players, and manage stats
-- 📄 **Quotation Requests**: Request custom quotes for organizing tournaments or booking grounds
-- 🔒 **Authentication**: Secure login and registration system
-- 📱 **Responsive UI**: Fully responsive design using Tailwind CSS v4
-- ⚙️ **Tech Stack**: React, TypeScript, Tailwind CSS, Node.js, Express, PostgreSQL, Prisma, Socket.IO
+**Implemented**
+
+- 👥 **Role-based accounts** — Player, Owner, and Admin, with JWT auth over httpOnly cookies and ownership guards on every resource
+- 🧭 **Radius-based discovery** — find active players and open games within a configurable distance
+- 🤝 **Play Rooms** — form a squad for a casual game, a team build, or a practice session; join requests with approval, and consent-gated contact sharing
+- 🏟 **Grounds & slots** — owners list grounds with pitch type, facilities, per-slot pricing, and availability
+- 💳 **Booking & payments** — a booking-session state machine (`DRAFT → PAYMENT_PENDING → CONFIRMED`) backed by Stripe PaymentIntents, with idempotent persistence
+- 🏆 **Tournaments** — lifecycle-managed tournaments with team registration
+- 📊 **Analytics** — separate owner, organizer, and admin dashboards over a first-class event stream
+- 👤 **Profiles & teams** — player profiles with skills, roles, styles, and stats; team rosters with captain/manager
+
+**Planned** — see [docs/PLAN.md](docs/PLAN.md)
+
+- 🎨 Cricket-native design system ("Maidan")
+- 🤖 AI layer: natural-language discovery, squad-fit matchmaking, organizer co-pilot, automated match reports
+- 📈 Owner yield optimisation and demand-to-supply matching
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Frontend | Backend | Database | Real-time | Styling |
-|----------|---------|----------|-----------|---------|
-| React + TypeScript | Node.js + Express | PostgreSQL with Prisma ORM | Socket.IO | Tailwind CSS v4 |
+| Area | Technology |
+|---|---|
+| **Frontend** | React 18 · TypeScript · Vite 5 |
+| Routing / state | React Router 6 · Redux Toolkit + redux-persist · TanStack Query v5 |
+| Styling / UI | Tailwind CSS 3 · Radix UI primitives · Framer Motion · GSAP |
+| Forms | react-hook-form + Zod |
+| **Backend** | Node.js · Express 4 · TypeScript |
+| Database | PostgreSQL · Prisma 6 |
+| Validation | Zod 4 |
+| Auth & security | JWT · bcryptjs · Helmet · CORS · express-rate-limit |
+| Payments | Stripe (PaymentIntents + Elements) |
 
 ---
 

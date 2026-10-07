@@ -1,208 +1,70 @@
-import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Response } from "express";
+import { Request } from "express";
+import { prisma } from "../shared/db/prisma";
+import { authRequest } from "../middleware/auth";
+import { asyncHandler } from "../shared/http/asyncHandler";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../shared/errors/AppError";
+import { CreateGroundInput, UpdateGroundInput } from "../modules/grounds/ground.schemas";
 
-const prisma = new PrismaClient();
-declare module "express-serve-static-core" {
-    interface Request { ownerId: string }
-}
+export const createGround = asyncHandler(async (req: authRequest, res: Response) => {
+    const userId = req.userId;
+    if (!userId) throw new UnauthorizedError();
 
-export const createGround = async (req: any, res: Response) => {
-    try {
-        const userId = req.userId;
-        
-        const user =await prisma.user.findUnique({
-            where:{
-                id:userId,
-                
-            },
-            include:{
-                ownerProfile:true
-            }
-        })
-        // console.log("erteftf",user);
-        if(!user){
-            res.status(404).json({
-                message:"Plese login first",
-                success:false
-            })
-            return
-        }
-        const ownerId = user?.ownerProfile?.id;
-       
-        const { name, location, rating, bookings, pitchType, facilities, pricePerMatch } = req.body;
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { ownerProfile: true },
+    });
+    if (!user) throw new UnauthorizedError("Please login first");
 
-        if (!name || !location || !pitchType || !pricePerMatch) {
-             res.status(400).json({
-                message: "Name, location, pitch type, price per match, and owner ID are required",
-                success: false,
-            });
-            return
-        }
+    const ownerId = user.ownerProfile?.id;
+    if (!ownerId) throw new BadRequestError("Owner profile required before creating a ground");
 
-        const newGround = await prisma.ground.create({
-           
-            data: {
-                name,
-                location,
-                rating: rating || 0.0,
-                bookings: bookings || 0,
-                pitchType,
-                facilities,
-                pricePerMatch,
-               owner:{connect:{id:ownerId}}
-            },
-        });
-        
+    const data = req.body as CreateGroundInput;
 
-         res.status(201).json({
-            message: "Ground created successfully",
-            success: true,
-            ground: newGround,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+    const ground = await prisma.ground.create({
+        data: {
+            name: data.name,
+            location: data.location,
+            rating: data.rating ?? 0,
+            bookings: data.bookings ?? 0,
+            pitchType: data.pitchType,
+            facilities: data.facilities as any,
+            pricePerMatch: data.pricePerMatch,
+            owner: { connect: { id: ownerId } },
+        },
+    });
 
-// Get all grounds
-export const getAllGrounds = async (req: Request, res: Response) => {
-    try {
-        const grounds = await prisma.ground.findMany({
-            include: {
-                owner: true, // Include owner details
-            },
-        });
+    res.status(201).json({ success: true, message: "Ground created successfully", ground });
+});
 
-         res.status(200).json({
-            message: "Grounds fetched successfully",
-            success: true,
-            grounds,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+export const getAllGrounds = asyncHandler(async (_req: Request, res: Response) => {
+    const grounds = await prisma.ground.findMany({ include: { owner: true } });
+    res.status(200).json({ success: true, message: "Grounds fetched successfully", grounds });
+});
 
-// Get a ground by ID
-export const getGroundById = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+export const getGroundById = asyncHandler(async (req: Request, res: Response) => {
+    const ground = await prisma.ground.findUnique({
+        where: { id: req.params.id },
+        include: { owner: true },
+    });
+    if (!ground) throw new NotFoundError("Ground not found");
 
-        const ground = await prisma.ground.findUnique({
-            where: { id },
-            include: {
-                owner: true, // Include owner details
-            },
-        });
+    res.status(200).json({ success: true, message: "Ground details fetched successfully", ground });
+});
 
-        if (!ground) {
-             res.status(404).json({
-                message: "Ground not found",
-                success: false,
-            });
-            return
-        }
+export const updateGround = asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body as UpdateGroundInput;
+    const ground = await prisma.ground.update({
+        where: { id: req.params.id },
+        data: {
+            ...data,
+            facilities: data.facilities as any,
+        },
+    });
+    res.status(200).json({ success: true, message: "Ground updated successfully", ground });
+});
 
-         res.status(200).json({
-            message: "Ground details fetched successfully",
-            success: true,
-            ground,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
-
-// Update a ground
-export const updateGround = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { name, location, rating, bookings, pitchType, facilities, pricePerMatch } = req.body;
-
-        const ground = await prisma.ground.findUnique({ where: { id } });
-
-        if (!ground) {
-             res.status(404).json({
-                message: "Ground not found",
-                success: false,
-            });
-            return
-        }
-
-        const updatedGround = await prisma.ground.update({
-            where: { id },
-            data: {
-                name,
-                location,
-                rating,
-                bookings,
-                pitchType,
-                facilities,
-                pricePerMatch,
-            },
-        });
-
-         res.status(200).json({
-            message: "Ground updated successfully",
-            success: true,
-            ground: updatedGround,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
-
-export const deleteGround = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-
-        const ground = await prisma.ground.findUnique({ where: { id } });
-
-        if (!ground) {
-             res.status(404).json({
-                message: "Ground not found",
-                success: false,
-            });
-            return
-        }
-
-        await prisma.ground.delete({ where: { id } });
-
-         res.status(200).json({
-            message: "Ground deleted successfully",
-            success: true,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+export const deleteGround = asyncHandler(async (req: Request, res: Response) => {
+    await prisma.ground.delete({ where: { id: req.params.id } });
+    res.status(200).json({ success: true, message: "Ground deleted successfully" });
+});

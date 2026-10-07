@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaArrowRight, FaMapMarkerAlt, FaClock, FaUsers, FaRupeeSign } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { TOUR_API_END_POINT } from "@/utils/constants";
 
 const fallbackMatches = [
   {
@@ -51,7 +52,7 @@ export default function Matchups() {
   useEffect(() => {
     async function fetchTournaments() {
      try {
-        const response = await axios.get("http://localhost:8080/api/v1/owner/tours/getTours");
+        const response = await axios.get(`${TOUR_API_END_POINT}/getTours`);
         const tournaments = response.data.tournaments || [];
         const sortedTournaments = tournaments
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { USER_API_END_POINT } from "../utils/constants";
 import { useDispatch, useSelector } from "react-redux";
@@ -113,6 +113,7 @@ const SignUp = () => {
         state: input.state,
         city: input.city
       }, {
+        withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
         }
@@ -121,7 +122,7 @@ const SignUp = () => {
       console.log("Server Response:", response.data);
 
       if (response.data.success) {
-        dispatch(setUser(input.fullname))
+        dispatch(setUser(response.data.user));
         navigate("/");
       }
     } catch (error) {

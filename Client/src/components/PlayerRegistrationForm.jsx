@@ -1,6 +1,4 @@
-// PlayerRegistrationForm.js
-import { div } from 'framer-motion/client';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const PlayerRegistrationForm = () => {
   const [formData, setFormData] = useState({

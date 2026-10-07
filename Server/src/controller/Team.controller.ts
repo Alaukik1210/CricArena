@@ -1,350 +1,130 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../shared/db/prisma";
+import { asyncHandler } from "../shared/http/asyncHandler";
+import { NotFoundError } from "../shared/errors/AppError";
+import { AddPlayerInput, CreateTeamInput, UpdateTeamInput } from "../modules/teams/team.schemas";
 
-const prisma = new PrismaClient();
-
-// Create a new team
-export const createTeam = async (req: Request, res: Response) => {
-    try {
-        const { name, description, memberIds } = req.body;
-
-        if (!name || !description) {
-             res.status(400).json({
-                message: "Name and description are required",
-                success: false,
+const linkPlayerProfilesToTeam = async (memberIds: string[], teamId: string) => {
+    await Promise.all(
+        memberIds.map(async (userId) => {
+            const profile = await prisma.playerProfile.findUnique({ where: { userId } });
+            if (!profile) {
+                console.warn(`PlayerProfile not found for userId: ${userId}`);
+                return;
+            }
+            await prisma.playerProfile.update({
+                where: { userId },
+                data: { teams: { connect: { id: teamId } } },
             });
-            return
-        }
-        const newTeam = await prisma.team.create({
-            data: {
-                name,
-                description,
-                members: {
-                    connect: memberIds?.map((id: string) => ({ id })),
-                },
-            },
-        });
-
-        if (memberIds && memberIds.length > 0) {
-            await Promise.all(
-                memberIds.map(async (id: string) => {
-                    
-                    const playerProfile = await prisma.playerProfile.findUnique({
-                        where: { userId: id },
-                    });
-
-                    if (playerProfile) {
-                        
-                        await prisma.playerProfile.update({
-                            where: { userId: id },
-                            data: {
-                                teams: {
-                                    connect: { id: newTeam.id },
-                                },
-                            },
-                        });
-                    } else {
-                        console.warn(`PlayerProfile not found for userId: ${id}`);
-                    }
-                })
-            );
-        }
-
-         res.status(201).json({
-            message: "Team created successfully",
-            success: true,
-            team: newTeam,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        });
-        return
-    }
-};
-export const getAllTeams = async (req: Request, res: Response) => {
-    try {
-        const teams = await prisma.team.findMany({
-            include: {
-                members: true,
-            },
-        });
-
-         res.status(200).json({
-            message: "Teams fetched successfully",
-            success: true,
-            teams,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
+        }),
+    );
 };
 
-// Get a single team by ID
-export const getTeamById = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+export const createTeam = asyncHandler(async (req: Request, res: Response) => {
+    const { name, description, memberIds } = req.body as CreateTeamInput;
 
-        const team = await prisma.team.findUnique({
-            where: { id },
-            include: {
-                members: true,
-            },
-        });
+    const team = await prisma.team.create({
+        data: {
+            name,
+            description,
+            members: memberIds?.length ? { connect: memberIds.map((id) => ({ id })) } : undefined,
+        },
+    });
 
-        if (!team) {
-             res.status(404).json({
-                message: "Team not found",
-                success: false,
-            });
-            return
-        }
-
-         res.status(200).json({
-            message: "Team fetched successfully",
-            success: true,
-            team,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
+    if (memberIds?.length) {
+        await linkPlayerProfilesToTeam(memberIds, team.id);
     }
-};
 
-// Update a team
-export const updateTeam = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { name, description, memberIds } = req.body;
+    res.status(201).json({ success: true, message: "Team created successfully", team });
+});
 
-        const team = await prisma.team.findUnique({ where: { id } });
+export const getAllTeams = asyncHandler(async (_req: Request, res: Response) => {
+    const teams = await prisma.team.findMany({ include: { members: true } });
+    res.status(200).json({ success: true, message: "Teams fetched successfully", teams });
+});
 
-        if (!team) {
-             res.status(404).json({
-                message: "Team not found",
-                success: false,
-            });
-            return
-        }
+export const getTeamById = asyncHandler(async (req: Request, res: Response) => {
+    const team = await prisma.team.findUnique({
+        where: { id: req.params.id },
+        include: { members: true },
+    });
+    if (!team) throw new NotFoundError("Team not found");
+    res.status(200).json({ success: true, message: "Team fetched successfully", team });
+});
 
-        const updatedTeam = await prisma.team.update({
-            where: { id },
-            data: {
-                name,
-                description,
-                members: {
-                    set: memberIds?.map((id: string) => ({ id })),
-                },
-            },
-        });
+export const updateTeam = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name, description, memberIds } = req.body as UpdateTeamInput;
 
-        if (memberIds && memberIds.length > 0) {
-            await Promise.all(
-                memberIds.map(async (id: string) => {
-                    await prisma.playerProfile.update({
-                        where: { userId: id },
-                        data: {
-                            teams: {
-                                connect: { id: updatedTeam.id },
-                            },
-                        },
-                    });
-                })
-            );
-        }
+    const team = await prisma.team.update({
+        where: { id },
+        data: {
+            name,
+            description,
+            members: memberIds ? { set: memberIds.map((mid) => ({ id: mid })) } : undefined,
+        },
+    });
 
-
-         res.status(200).json({
-            message: "Team updated successfully",
-            success: true,
-            team: updatedTeam,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
+    if (memberIds?.length) {
+        await linkPlayerProfilesToTeam(memberIds, team.id);
     }
-};
 
-// Delete a team
-export const deleteTeam = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+    res.status(200).json({ success: true, message: "Team updated successfully", team });
+});
 
-        const team = await prisma.team.findUnique({ where: { id } });
+export const deleteTeam = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-        if (!team) {
-             res.status(404).json({
-                message: "Team not found",
-                success: false,
-            });
-            return
-        }
+    const playerProfiles = await prisma.playerProfile.findMany({
+        where: { teams: { some: { id } } },
+    });
 
-        const playerProfiles = await prisma.playerProfile.findMany({
-            where: {
-                teams: {
-                    some: { id },
-                },
-            },
-        });
+    await Promise.all(
+        playerProfiles.map((profile) =>
+            prisma.playerProfile.update({
+                where: { id: profile.id },
+                data: { teams: { disconnect: { id } } },
+            }),
+        ),
+    );
 
-        // Disconnect the team from each player's profile
-        await Promise.all(
-            playerProfiles.map(async (profile) => {
-                await prisma.playerProfile.update({
-                    where: { id: profile.id },
-                    data: {
-                        teams: {
-                            disconnect: { id },
-                        },
-                    },
-                });
-            })
-        );
+    await prisma.team.delete({ where: { id } });
 
-        await prisma.team.delete({ where: { id } });
+    res.status(200).json({ success: true, message: "Team deleted successfully" });
+});
 
-         res.status(200).json({
-            message: "Team deleted successfully",
-            success: true,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+export const getTeamMembers = asyncHandler(async (req: Request, res: Response) => {
+    const team = await prisma.team.findUnique({
+        where: { id: req.params.id },
+        include: { members: true },
+    });
+    if (!team) throw new NotFoundError("Team not found");
 
-// Get members of a specific team
-export const getTeamMembers = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+    res.status(200).json({
+        success: true,
+        message: "Team members fetched successfully",
+        members: team.members,
+    });
+});
 
-        // Fetch the team along with its members
-        const team = await prisma.team.findUnique({
-            where: { id },
-            include: {
-                members: true, // Include members in the response
-            },
-        });
+export const addPlayerToTeam = asyncHandler(async (req: Request, res: Response) => {
+    const { teamId, playerId } = req.body as AddPlayerInput;
 
-        if (!team) {
-             res.status(404).json({
-                message: "Team not found",
-                success: false,
-            });
-            return
-        }
+    const [team, player] = await Promise.all([
+        prisma.team.findUnique({ where: { id: teamId } }),
+        prisma.user.findUnique({ where: { id: playerId } }),
+    ]);
+    if (!team) throw new NotFoundError("Team not found");
+    if (!player) throw new NotFoundError("Player not found");
 
-         res.status(200).json({
-            message: "Team members fetched successfully",
-            success: true,
-            members: team.members,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+    await prisma.team.update({
+        where: { id: teamId },
+        data: { members: { connect: { id: playerId } } },
+    });
+    await prisma.playerProfile.update({
+        where: { userId: playerId },
+        data: { teams: { connect: { id: teamId } } },
+    });
 
-export const addPlayerToTeam = async (req: Request, res: Response) => {
-    try {
-        const { teamId, playerId } = req.body;
-
-        // Validate input
-        if (!teamId || !playerId) {
-             res.status(400).json({
-                message: "Team ID and Player ID are required",
-                success: false,
-            });
-            return
-        }
-
-        // Check if the team exists
-        const team = await prisma.team.findUnique({
-            where: { id: teamId },
-        });
-
-        if (!team) {
-             res.status(404).json({
-                message: "Team not found",
-                success: false,
-            });
-            return
-        }
-
-        // Check if the player exists
-        const player = await prisma.user.findUnique({
-            where: { id: playerId },
-        });
-
-        if (!player) {
-             res.status(404).json({
-                message: "Player not found",
-                success: false,
-            });
-            return
-        }
-
-        // Add the player to the team
-        await prisma.team.update({
-            where: { id: teamId },
-            data: {
-                members: {
-                    connect: { id: playerId },
-                },
-            },
-        });
-
-        await prisma.playerProfile.update({
-            where: { userId: playerId },
-            data: {
-                teams: {
-                    connect: { id: teamId },
-                },
-            },
-        });
-
-         res.status(200).json({
-            message: "Player added to the team successfully",
-            success: true,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+    res.status(200).json({ success: true, message: "Player added to the team successfully" });
+});

@@ -1,7 +1,4 @@
-// TicketBookingForm.js
-import { div } from 'framer-motion/client';
-import React, { useState } from 'react';
-import Navbar from './Navbar';
+import { useState } from 'react';
 
 const TicketBookingForm = () => {
   const [formData, setFormData] = useState({

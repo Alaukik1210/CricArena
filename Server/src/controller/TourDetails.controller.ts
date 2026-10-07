@@ -1,189 +1,83 @@
-import { Request, Response } from "express"
-import { PrismaClient } from "@prisma/client";
+import { Request, Response } from "express";
+import { TournamentLifecycleStatus } from "@prisma/client";
+import { prisma } from "../shared/db/prisma";
+import { authRequest } from "../middleware/auth";
+import { asyncHandler } from "../shared/http/asyncHandler";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../shared/errors/AppError";
+import {
+    CreateTournamentInput,
+    RegisterForTourInput,
+} from "../modules/tournaments/tournament.schemas";
 
-
-const prisma = new PrismaClient();
-
-export const TournamentDetails = async (req:Request,res:Response)=>{
-    try {
-        const {title,description,tourStartsDate,tourEndDate,venue,entryFee,spots,type,lastRegistrationDate} = req.body;
-        if(!title || !description || !tourStartsDate || !tourEndDate || !venue || !entryFee || !spots || !type || !lastRegistrationDate){
-            res.status(400).json({
-                message:"Please enter all these important details",
-                success:false
-            });
-            return
-        }
-
-        const newTournament = await prisma.tournamentDetails.create({
-            data: {
-                title,
-                description,
-                tourStartsDate,
-                tourEndDate,
-                venue,
-                entryFee,
-                spots,
-                type,
-                lastRegistrationDate
-            }
-        });
-
-         res.status(201).json({
-            message: "Tournament created successfully",
-            success: true,
-            tournament: newTournament
-        });
-        return
-       
-        
-    } catch (error) {
-        console.log(error);
-        
-    }
-}
-
-export const getAllTournaments = async(req:Request,res:Response)=>{
-    try {
-        const tournaments = await prisma.tournamentDetails.findMany({
-            orderBy:{
-                createdAt:'desc'
-            }
-        });
-
-        if(!tournaments.length){
-            res.status(404).json({
-                message:"No tournaments found",
-                success:false
-            })
-            return 
-        }
-
-        res.status(200).json({
-            message:"Tournaments fetched successfully",
-            success:true,
-            tournaments
-        })
-        
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-export const registerForTour = async (req: Request, res: Response) => {
-    try {
-        const { tournamentId, teamId } = req.body;
-
-        // Validate input
-        if (!tournamentId || !teamId) {
-             res.status(400).json({
-                message: "Tournament ID and Team ID are required",
-                success: false,
-            });
-            return
-        }
-
-        // Check if the tournament exists
-        const tournament = await prisma.tournamentDetails.findUnique({
-            where: { id: tournamentId },
-        });
-
-        if (!tournament) {
-             res.status(404).json({
-                message: "Tournament not found",
-                success: false,
-            });
-            return
-        }
-
-        // Check if the team exists
-        const team = await prisma.team.findUnique({
-            where: { id: teamId },
-        });
-
-        if (!team) {
-             res.status(404).json({
-                message: "Team not found",
-                success: false,
-            });
-            return
-        }
-
-        // Check if the team is already registered for the tournament
-        const isAlreadyRegistered = await prisma.tournamentDetails.findFirst({
-            where: {
-                id: tournamentId,
-                teams: {
-                    some: { id: teamId },
-                },
-            },
-        });
-
-        if (isAlreadyRegistered) {
-             res.status(400).json({
-                message: "Team is already registered for this tournament",
-                success: false,
-            });
-            return
-        }
-
-        // Register the team for the tournament
-        await prisma.tournamentDetails.update({
-            where: { id: tournamentId },
-            data: {
-                teams: {
-                    connect: { id: teamId },
-                },
-            },
-        });
-
-         res.status(200).json({
-            message: "Team successfully registered for the tournament",
-            success: true,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
+const toDate = (value: string) => {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? undefined : d;
 };
 
-export const getTournamentById = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+export const TournamentDetails = asyncHandler(async (req: authRequest, res: Response) => {
+    const data = req.body as CreateTournamentInput;
+    if (!req.userId) throw new UnauthorizedError();
 
-        // Check if the tournament exists
-        const tournament = await prisma.tournamentDetails.findUnique({
-            where: { id },
-            include: {
-                teams: true, // Include the teams registered for the tournament
-            },
-        });
+    const tournament = await prisma.tournamentDetails.create({
+        data: {
+            title: data.title,
+            description: data.description,
+            tourStartsDate: data.tourStartsDate,
+            tourEndDate: data.tourEndDate,
+            venue: data.venue,
+            entryFee: String(data.entryFee),
+            spots: String(data.spots),
+            type: data.type,
+            lastRegistrationDate: data.lastRegistrationDate,
+            startsAt: toDate(data.tourStartsDate),
+            endsAt: toDate(data.tourEndDate),
+            registrationClosesAt: toDate(data.lastRegistrationDate),
+            entryFeeAmount: data.entryFee,
+            capacity: data.spots,
+            status: TournamentLifecycleStatus.REGISTRATION_OPEN,
+            createdByUserId: req.userId,
+        },
+    });
 
-        if (!tournament) {
-             res.status(404).json({
-                message: "Tournament not found",
-                success: false,
-            });
-            return
-        }
+    res.status(201).json({ success: true, message: "Tournament created successfully", tournament });
+});
 
-         res.status(200).json({
-            message: "Tournament details fetched successfully",
-            success: true,
-            tournament,
-        });
-        return
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-        });
-        return
-    }
-};
+export const getAllTournaments = asyncHandler(async (_req: Request, res: Response) => {
+    const tournaments = await prisma.tournamentDetails.findMany({
+        orderBy: { createdAt: "desc" },
+    });
+    res.status(200).json({ success: true, message: "Tournaments fetched successfully", tournaments });
+});
+
+export const registerForTour = asyncHandler(async (req: Request, res: Response) => {
+    const { tournamentId, teamId } = req.body as RegisterForTourInput;
+
+    const [tournament, team, alreadyRegistered] = await Promise.all([
+        prisma.tournamentDetails.findUnique({ where: { id: tournamentId } }),
+        prisma.team.findUnique({ where: { id: teamId } }),
+        prisma.tournamentDetails.findFirst({
+            where: { id: tournamentId, teams: { some: { id: teamId } } },
+        }),
+    ]);
+
+    if (!tournament) throw new NotFoundError("Tournament not found");
+    if (!team) throw new NotFoundError("Team not found");
+    if (alreadyRegistered) throw new BadRequestError("Team is already registered for this tournament");
+
+    await prisma.tournamentDetails.update({
+        where: { id: tournamentId },
+        data: { teams: { connect: { id: teamId } } },
+    });
+
+    res.status(200).json({ success: true, message: "Team successfully registered for the tournament" });
+});
+
+export const getTournamentById = asyncHandler(async (req: Request, res: Response) => {
+    const tournament = await prisma.tournamentDetails.findUnique({
+        where: { id: req.params.id },
+        include: { teams: true },
+    });
+    if (!tournament) throw new NotFoundError("Tournament not found");
+
+    res.status(200).json({ success: true, message: "Tournament details fetched successfully", tournament });
+});

@@ -6,19 +6,27 @@ import { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaRupeeSign } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { PROFILE_API_END_POINT, TEAM_API_END_POINT, TOUR_API_END_POINT } from "@/utils/constants";
 
 export default function RegisterTour() {
   const [selectedTeam, setSelectedTeam] = useState("");
   const [tournamentDetails, setTournamentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState([]);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamDescription, setNewTeamDescription] = useState("");
+  const [creatingTeam, setCreatingTeam] = useState(false);
   const { id } = useParams();
-  const user = useSelector(store => store.user);
-  const userId = user.user.id;
+const { user } = useSelector((store) => store.user);
+const userId = user?.id; // ✅ safe access
 
   const fetchTeamById = async () => {
+    if (!userId) {
+      setTeams([]);
+      return;
+    }
     try {
-      const res = await axios.get(`http://localhost:8080/api/v1/user/profile/${userId}/teams`);
+      const res = await axios.get(`${PROFILE_API_END_POINT}/${userId}/teams`);
       setTeams(res.data.teams || []);
     } catch (error) {
       console.log(error);
@@ -29,7 +37,7 @@ export default function RegisterTour() {
   useEffect(() => {
     const fetchTournamentDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/v1/owner/tours/${id}`);
+        const response = await axios.get(`${TOUR_API_END_POINT}/${id}`);
         setTournamentDetails(response.data.tournament);
         fetchTeamById();
       } catch (error) {
@@ -56,7 +64,7 @@ export default function RegisterTour() {
       const teamId = selectedTeamObj.id; // Get the team ID
   
       // Send the POST request with tournamentId and teamId
-      const response = await axios.post(`http://localhost:8080/api/v1/owner/tours/register`, {
+      const response = await axios.post(`${TOUR_API_END_POINT}/register`, {
         tournamentId: id,
         teamId: teamId,
       });
@@ -73,6 +81,31 @@ export default function RegisterTour() {
     } catch (error) {
       console.error("Error registering team:", error);
       alert("Failed to register the team. Please try again.");
+    }
+  };
+
+  const createTeamHandler = async () => {
+    if (!newTeamName || !newTeamDescription || !userId) {
+      alert("Please fill team name and description.");
+      return;
+    }
+
+    try {
+      setCreatingTeam(true);
+      await axios.post(`${TEAM_API_END_POINT}/create`, {
+        name: newTeamName,
+        description: newTeamDescription,
+        memberIds: [userId],
+      });
+      setNewTeamName("");
+      setNewTeamDescription("");
+      await fetchTeamById();
+      alert("Team created successfully");
+    } catch (error) {
+      console.error("Error creating team:", error);
+      alert("Failed to create team.");
+    } finally {
+      setCreatingTeam(false);
     }
   };
 
@@ -122,6 +155,32 @@ export default function RegisterTour() {
             <h3 className="text-2xl font-semibold text-[#FFD070] mb-4">
               Register Your Team
             </h3>
+            {teams.length === 0 && (
+              <div className="mb-4 p-4 rounded border border-yellow-400/40 bg-black/30">
+                <p className="text-sm text-gray-300 mb-3">No team found. Create your first team to register in this tournament.</p>
+                <div className="flex flex-col sm:flex-row gap-2 mb-2">
+                  <input
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    placeholder="Team name"
+                    className="bg-black text-white border border-gray-600 p-2 rounded-md"
+                  />
+                  <input
+                    value={newTeamDescription}
+                    onChange={(e) => setNewTeamDescription(e.target.value)}
+                    placeholder="Team description"
+                    className="bg-black text-white border border-gray-600 p-2 rounded-md flex-1"
+                  />
+                </div>
+                <Button
+                  onClick={createTeamHandler}
+                  disabled={creatingTeam}
+                  className="bg-[#FFD070] text-black hover:bg-[#FFC857]"
+                >
+                  {creatingTeam ? "Creating Team..." : "Create Team"}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-2">
               <select
                 value={selectedTeam}

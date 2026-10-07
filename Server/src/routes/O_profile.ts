@@ -1,17 +1,30 @@
 import express from "express";
+import { Role } from "@prisma/client";
 import {
     upsertOwnerProfile,
     getOwnerProfile,
     deleteOwnerProfile,
     getOwnerGrounds,
 } from "../controller/O_profile.controller";
-import { authentication } from "../middleware/auth";
+import { authentication, requireRole, requireSelfOrAdmin } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import {
+    upsertOwnerProfileSchema,
+    userIdParamSchema,
+} from "../modules/profiles/profile.schemas";
 
 const router = express.Router();
 
-router.post("/:userId",authentication, upsertOwnerProfile);
-router.get("/:userId", getOwnerProfile);
-router.delete("/:userId", deleteOwnerProfile);
-router.get("/:userId/grounds", getOwnerGrounds);
+const ownerGuards = [
+    authentication,
+    requireRole(Role.OWNER, Role.ADMIN),
+    requireSelfOrAdmin(),
+    validate(userIdParamSchema, "params"),
+] as const;
+
+router.post("/:userId", ...ownerGuards, validate(upsertOwnerProfileSchema), upsertOwnerProfile);
+router.get("/:userId", ...ownerGuards, getOwnerProfile);
+router.delete("/:userId", ...ownerGuards, deleteOwnerProfile);
+router.get("/:userId/grounds", ...ownerGuards, getOwnerGrounds);
 
 export default router;

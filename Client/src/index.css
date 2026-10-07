@@ -178,5 +178,139 @@
     @apply bg-background text-foreground;
     }
 }
+
+:root {
+  --arena-bg: #0c0f11;
+  --arena-surface: #15191c;
+  --arena-surface-2: #1c2226;
+  --arena-line: rgba(255, 255, 255, 0.08);
+  --arena-text: #f5efe3;
+  --arena-muted: #b8b0a4;
+  --arena-gold: #d8b56d;
+  --arena-gold-soft: #f0ddb0;
+  --arena-green: #5f8e63;
+  --arena-danger: #cd725e;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(216, 181, 109, 0.14), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(95, 142, 99, 0.12), transparent 26%),
+    linear-gradient(180deg, #090b0d 0%, #101416 100%);
+  color: var(--arena-text);
+}
+
+.product-page {
+  @apply min-h-screen px-4 pb-16 pt-32 md:px-8 lg:px-12;
+}
+
+.product-shell {
+  @apply mx-auto max-w-7xl space-y-6;
+}
+
+.product-panel {
+  background: linear-gradient(180deg, rgba(21, 25, 28, 0.95), rgba(12, 15, 17, 0.96));
+  border: 1px solid var(--arena-line);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.24);
+  @apply rounded-[28px];
+}
+
+.product-hero {
+  @apply product-panel p-6 md:p-8 lg:p-10;
+}
+
+.product-grid {
+  @apply grid gap-4 md:gap-5;
+}
+
+.product-grid-2 {
+  @apply product-grid grid-cols-1 lg:grid-cols-2;
+}
+
+.product-grid-3 {
+  @apply product-grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3;
+}
+
+.product-grid-4 {
+  @apply product-grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4;
+}
+
+.section-kicker {
+  color: var(--arena-gold);
+  letter-spacing: 0.18em;
+  @apply mb-3 text-xs font-semibold uppercase;
+}
+
+.display-title {
+  @apply font-cabinet-black text-4xl leading-none tracking-tight md:text-5xl xl:text-6xl;
+}
+
+.section-title {
+  @apply font-cabinet-extrabold text-2xl tracking-tight md:text-3xl;
+}
+
+.section-copy {
+  color: var(--arena-muted);
+  @apply mt-3 max-w-3xl text-sm leading-7 md:text-base;
+}
+
+.product-card {
+  background: linear-gradient(180deg, rgba(27, 32, 36, 0.95), rgba(15, 18, 21, 0.95));
+  border: 1px solid var(--arena-line);
+  @apply rounded-3xl p-5 md:p-6;
+}
+
+.stat-card {
+  @apply product-card;
+}
+
+.stat-value {
+  color: var(--arena-gold-soft);
+  @apply mt-3 block text-3xl font-cabinet-black;
+}
+
+.muted-copy {
+  color: var(--arena-muted);
+}
+
+.pill-accent {
+  background: rgba(95, 142, 99, 0.16);
+  color: #a7d6ab;
+  @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em];
+}
+
+.pill-gold {
+  background: rgba(216, 181, 109, 0.16);
+  color: var(--arena-gold-soft);
+  @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em];
+}
+
+.standard-input,
+.standard-select,
+.standard-textarea {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--arena-text);
+  @apply w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-[#d8b56d] focus:ring-2 focus:ring-[#d8b56d]/20;
+}
+
+.standard-textarea {
+  @apply min-h-28 resize-y;
+}
+
+.cta-primary {
+  background: linear-gradient(135deg, #f1ddb0, #d8b56d);
+  color: #1a1307;
+  @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5;
+}
+
+.cta-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  @apply inline-flex items-center justify-center rounded-full bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10;
+}
+
+.surface-divider {
+  border-color: rgba(255, 255, 255, 0.08);
+}
   
   

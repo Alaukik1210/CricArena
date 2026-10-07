@@ -16,6 +16,7 @@ datasource db {
 enum Role{
   PLAYER
   OWNER
+  ADMIN
 }
 
 enum Type{
@@ -24,11 +25,90 @@ enum Type{
   League
 }
 
+enum SportType {
+  CRICKET
+}
+
+enum TournamentLifecycleStatus {
+  DRAFT
+  PUBLISHED
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum GroundLifecycleStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum BookingSessionStatus {
+  DRAFT
+  PAYMENT_PENDING
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentRecordStatus {
+  REQUIRES_ACTION
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum AvailabilityType {
+  CASUAL
+  TEAM_JOIN
+  TEAM_BUILD
+  TRAINING
+  ANY
+}
+
+enum PlayRoomStatus {
+  OPEN
+  FULL
+  MATCHING
+  CLOSED
+  CANCELLED
+}
+
+enum PlayRoomTeamMode {
+  SINGLE_GROUP
+  TWO_TEAMS
+  OPEN_PRACTICE
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
+}
+
+enum ContactMode {
+  IN_APP
+  WHATSAPP_CONSENT
+  PHONE_CONSENT
+}
+
 model User {
   id String @id @default(uuid())
   fullname String
   email String @unique
   phoneNumber Decimal @unique
+  phoneE164 String? @unique
   password String
   role Role @default(PLAYER)
   state String
@@ -36,6 +116,15 @@ model User {
   playerProfile PlayerProfile?
   ownerProfile  OwnerProfile?
   teams Team[] @relation("UserTeams")
+  bookings GroundBooking[]
+  bookingSessions BookingSession[] @relation("BookingSessionUser")
+  structuredBookings Booking[] @relation("BookingUser")
+  paymentRecords PaymentRecord[] @relation("PaymentUser")
+  availabilities PlayerAvailability[] @relation("AvailabilityUser")
+  createdRooms PlayRoom[] @relation("CreatedRooms")
+  roomMemberships PlayRoomMember[] @relation("RoomMembershipUser")
+  roomJoinRequests PlayRoomJoinRequest[] @relation("RoomJoinRequester")
+  analyticsEvents AnalyticsEvent[] @relation("AnalyticsActor")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
    
@@ -45,6 +134,8 @@ model PlayerProfile {
   id           String   @id @default(uuid())
   bio          String?
   skills       String
+  skillLevel   String?
+  primaryRole  String?
   battingStyle String
   bowlingStyle String
   profilePhoto String?
@@ -81,6 +172,13 @@ model TournamentDetails {
   type Type @default(Tournament)
   teams Team[]
   lastRegistrationDate String
+  status TournamentLifecycleStatus @default(DRAFT)
+  startsAt DateTime?
+  endsAt DateTime?
+  registrationClosesAt DateTime?
+  entryFeeAmount Int?
+  capacity Int?
+  createdByUserId String?
    createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -92,6 +190,8 @@ model Team{
   members User[] @relation("UserTeams") 
   players PlayerProfile[] @relation("PlayerTeams") 
   tournaments TournamentDetails[]
+  captainUserId String?
+  managerUserId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -100,14 +200,187 @@ model Ground {
   id              String   @id @default(uuid())
   name            String
   location        String
+  latitude        Float?
+  longitude       Float?
   rating          Float    @default(0.0)
   bookings        Int      @default(0)
+  bookingRecords  GroundBooking[]
+  slots           GroundSlot[]
+  bookingSessions BookingSession[]
+  structuredBookings Booking[] @relation("structuredBookings")
   pitchType       String   
   facilities      String[] 
   pricePerMatch   Int      
-owner           OwnerProfile @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-ownerId         String
-createdAt       DateTime @default(now())
-updatedAt       DateTime @updatedAt
+  status          GroundLifecycleStatus @default(DRAFT)
+  owner           OwnerProfile @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
+model GroundBooking {
+  id              String   @id @default(uuid())
+  paymentIntentId String   @unique
+  amount          Int
+  currency        String
+  status          String
+  ground          Ground   @relation(fields: [groundId], references: [id], onDelete: Cascade)
+  groundId        String
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId          String?
+  bookedAt        DateTime @default(now())
+}
+
+model GroundSlot {
+  id            String   @id @default(uuid())
+  ground        Ground   @relation(fields: [groundId], references: [id], onDelete: Cascade)
+  groundId      String
+  label         String
+  startsAt      DateTime
+  endsAt        DateTime
+  price         Int
+  currency      String   @default("inr")
+  isAvailable   Boolean  @default(true)
+  bookingSessions BookingSession[]
+  bookings      Booking[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model BookingSession {
+  id              String               @id @default(uuid())
+  user            User                 @relation("BookingSessionUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  ground          Ground               @relation(fields: [groundId], references: [id], onDelete: Cascade)
+  groundId        String
+  slot            GroundSlot?          @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  slotId          String?
+  amount          Int
+  currency        String               @default("inr")
+  status          BookingSessionStatus @default(DRAFT)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  paymentIntentId String?              @unique
+  booking         Booking?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model Booking {
+  id               String        @id @default(uuid())
+  user             User          @relation("BookingUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  ground           Ground        @relation("structuredBookings", fields: [groundId], references: [id], onDelete: Cascade)
+  groundId         String
+  slot             GroundSlot?   @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  slotId           String?
+  bookingSession   BookingSession? @relation(fields: [bookingSessionId], references: [id], onDelete: SetNull)
+  bookingSessionId String?       @unique
+  status           BookingStatus @default(PENDING)
+  amount           Int
+  currency         String        @default("inr")
+  startsAt         DateTime?
+  endsAt           DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  payments         PaymentRecord[]
+}
+
+model PaymentRecord {
+  id                    String              @id @default(uuid())
+  user                  User?               @relation("PaymentUser", fields: [userId], references: [id], onDelete: SetNull)
+  userId                String?
+  booking               Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  bookingId             String?
+  amount                Int
+  currency              String              @default("inr")
+  provider              String              @default("stripe")
+  providerPaymentId     String              @unique
+  paymentIntentId       String?             @unique
+  status                PaymentRecordStatus @default(REQUIRES_ACTION)
+  metadata              Json?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+}
+
+model PlayerAvailability {
+  id               String           @id @default(uuid())
+  user             User             @relation("AvailabilityUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  sport            SportType        @default(CRICKET)
+  isActive         Boolean          @default(true)
+  availabilityType AvailabilityType @default(CASUAL)
+  skillLevel       String?
+  preferredRoles   String[]
+  latitude         Float?
+  longitude        Float?
+  radiusKm         Int              @default(10)
+  availableFrom    DateTime?
+  availableUntil   DateTime?
+  visibility       String           @default("public")
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model PlayRoom {
+  id              String               @id @default(uuid())
+  createdBy       User                 @relation("CreatedRooms", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  createdByUserId String
+  sport           SportType            @default(CRICKET)
+  title           String
+  description     String?
+  status          PlayRoomStatus       @default(OPEN)
+  latitude        Float?
+  longitude       Float?
+  radiusKm        Int                  @default(10)
+  requiredPlayers Int                  @default(10)
+  currentPlayers  Int                  @default(1)
+  teamMode        PlayRoomTeamMode     @default(SINGLE_GROUP)
+  skillLevel      String?
+  city            String?
+  state           String?
+  matchDate       DateTime?
+  contactMode     ContactMode          @default(IN_APP)
+  members         PlayRoomMember[]
+  joinRequests    PlayRoomJoinRequest[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model PlayRoomMember {
+  id            String            @id @default(uuid())
+  room          PlayRoom          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId        String
+  user          User              @relation("RoomMembershipUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  rolePreference String?
+  status        JoinRequestStatus @default(PENDING)
+  joinedAt      DateTime          @default(now())
+
+  @@unique([roomId, userId])
+}
+
+model PlayRoomJoinRequest {
+  id              String            @id @default(uuid())
+  room            PlayRoom          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId          String
+  requester       User              @relation("RoomJoinRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  requesterUserId String
+  message         String?
+  status          JoinRequestStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([roomId, requesterUserId])
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(uuid())
+  actor       User?    @relation("AnalyticsActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorUserId String?
+  name        String
+  category    String
+  context     Json?
+  createdAt   DateTime @default(now())
+}

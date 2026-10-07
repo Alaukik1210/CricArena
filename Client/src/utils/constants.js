@@ -1,1 +1,15 @@
-export const USER_API_END_POINT = "http://localhost:8080/api/v1/user";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+export const USER_API_END_POINT = `${API_BASE_URL}/user`;
+export const PROFILE_API_END_POINT = `${API_BASE_URL}/user/profile`;
+export const TEAM_API_END_POINT = `${API_BASE_URL}/user/team`;
+export const TOUR_API_END_POINT = `${API_BASE_URL}/owner/tours`;
+export const OWNER_PROFILE_API_END_POINT = `${API_BASE_URL}/owner/profile`;
+export const GROUND_API_END_POINT = `${API_BASE_URL}/ground`;
+export const PAYMENT_API_END_POINT = `${API_BASE_URL}/payment`;
+export const PLAY_ROOMS_API_END_POINT = `${API_BASE_URL}/play-rooms`;
+export const DISCOVERY_API_END_POINT = `${API_BASE_URL}/discovery`;
+export const AVAILABILITY_API_END_POINT = `${API_BASE_URL}/availability`;
+export const BOOKING_SESSION_API_END_POINT = `${API_BASE_URL}/booking-sessions`;
+export const OWNER_ANALYTICS_API_END_POINT = `${API_BASE_URL}/owner/analytics`;
+export const ORGANIZER_ANALYTICS_API_END_POINT = `${API_BASE_URL}/organizer/analytics`;
+export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";

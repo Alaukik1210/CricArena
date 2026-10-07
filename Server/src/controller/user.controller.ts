@@ -1,198 +1,118 @@
-import { PrismaClient } from "@prisma/client";
+import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { Request, Response } from "express";
+import { prisma } from "../shared/db/prisma";
 import { authRequest } from "../middleware/auth";
+import { asyncHandler } from "../shared/http/asyncHandler";
+import {
+    BadRequestError,
+    ConflictError,
+    NotFoundError,
+    UnauthorizedError,
+} from "../shared/errors/AppError";
+import {
+    LoginInput,
+    RegisterInput,
+    SearchPlayerInput,
+    UpdateProfileInput,
+} from "../modules/auth/auth.schemas";
 
-const prisma = new PrismaClient();
+const COOKIE_OPTIONS = {
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: "strict" as const,
+    secure: process.env.NODE_ENV === "production",
+};
 
-export const register = async (req: any, res: Response) => {
-    try {
-        const { fullname, email, password, phoneNumber, role ,state , city } = req.body;
-            console.log("hii",req.body)
-        if (!fullname || !email || !password || !role || !phoneNumber || !state || !city) {
-             res.status(400).json({
-                message: "Something is missing",
-                success: false
-            });
-            return
-        }
+const toSafeUser = <T extends { password: string }>(user: T) => {
+    const { password, ...safe } = user;
+    return safe;
+};
 
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (user) {
-             res.status(400).json({
-                message: "User already exists with this email",
-                success: false
-            });
-            return
-        }
-        
-        const hashedPassword = await bcrypt.hash(password, 10);
+const signToken = (userId: string) => {
+    const secret = process.env.SECRET_KEY;
+    if (!secret) throw new Error("SECRET_KEY is not configured");
+    return jwt.sign({ userId }, secret, { expiresIn: "1d" });
+};
 
-       const newUser =  await prisma.user.create({
-            data: {
-                fullname,
-                email,
-                password: hashedPassword,
-                phoneNumber,
-                role,
-                state,
-                city
-            }
-        });
+export const register = asyncHandler(async (req: Request, res: Response) => {
+    const { fullname, email, password, phoneNumber, role, state, city } = req.body as RegisterInput;
 
-         res.status(201).json({
-            message: "Account created successfully",
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) throw new ConflictError("User already exists with this email");
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+        data: { fullname, email, password: hashedPassword, phoneNumber, role, state, city },
+    });
+
+    const token = signToken(newUser.id);
+
+    res.status(201)
+        .cookie("token", token, COOKIE_OPTIONS)
+        .json({
             success: true,
-            newUser
+            message: "Account created successfully",
+            user: toSafeUser(newUser),
         });
-        return
+});
 
-    } catch (error) {
-        console.log(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false
-        });
-        return
-    }
-};
+export const login = asyncHandler(async (req: Request, res: Response) => {
+    const { email, password, role } = req.body as LoginInput;
 
-export const login = async (req: Request, res: Response) => {
-    try {
-        const { email, password, role } = req.body;
-        if (!email || !password || !role) {
-             res.status(400).json({
-                message: "Invalid email or password.",
-                success: false
-            });
-            return
-        }
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new UnauthorizedError("Incorrect email or password");
 
-        let user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-            res.status(400).json({
-                message: "Incorrect email or password",
-                success: false
-            });
-            return
-        }
+    const passwordMatches = await bcrypt.compare(password, user.password);
+    if (!passwordMatches) throw new UnauthorizedError("Incorrect email or password");
 
-        const isPasswordMatched = await bcrypt.compare(password, user.password);
-        if (!isPasswordMatched) {
-             res.status(403).json({
-                message: "Invalid email or password",
-                success: false
-            });
-            return
-        }
+    if (role !== user.role) throw new BadRequestError("User does not exist with this role");
 
-        if (role !== user.role) {
-             res.status(400).json({
-                message: "User does not exist with this role",
-                success: false
-            });
-            return
-        }
+    const token = signToken(user.id);
 
-        const tokenData = {
-            userId: user.id,
-        };
-        const token = jwt.sign(tokenData, process.env.SECRET_KEY as string, {
-            expiresIn: "1d",
-        });
-
-       
-
-         res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "strict" }).json({
+    res.status(200)
+        .cookie("token", token, COOKIE_OPTIONS)
+        .json({
+            success: true,
             message: `Welcome back ${user.fullname}`,
-            user,
-            success: true
+            user: toSafeUser(user),
         });
-        return
+});
 
-    } catch (error) {
-        console.log(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false
-        });
-        return
-    }
-};
+export const searchPlayer = asyncHandler(async (req: Request, res: Response) => {
+    const { fullname, email, phoneNumber } = req.body as SearchPlayerInput;
 
-export const searchPlayer = async (req: Request, res: Response) => {
-    try {
-        const { fullname, email, phoneNumber } = req.body;
-        if (!phoneNumber && !email && !fullname) {
-             res.status(400).json({
-                message: "At least provide any search criteria",
-                success: false
-            });
-            return
-        }
+    const players = await prisma.user.findMany({
+        where: {
+            ...(fullname && { fullname }),
+            ...(email && { email }),
+            ...(phoneNumber && { phoneNumber }),
+        },
+    });
 
-        const query: any = {};
-        if (phoneNumber) query.phoneNumber = phoneNumber;
-        if (email) query.email = email;
-        if (fullname) query.fullname = fullname;
+    if (players.length === 0) throw new NotFoundError("No player found");
 
-        const player = await prisma.user.findMany({ where: query });
+    res.status(200).json({ success: true, message: "Player found", player: players });
+});
 
-        if (player.length === 0) {
-             res.status(404).json({
-                message: "No player found",
-                success: false
-            });
-            return
-        }
+export const updateProfile = asyncHandler(async (req: authRequest, res: Response) => {
+    const userId = req.userId;
+    if (!userId) throw new UnauthorizedError();
 
-         res.status(200).json({
-            message: "Player found",
-            player,
-            success: true
-        });
-        return
+    const data = req.body as UpdateProfileInput;
 
-    } catch (error) {
-        console.log(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false
-        });
-        return
-    }
-};
+    const updated = await prisma.user.update({ where: { id: userId }, data });
 
-export const updateProfile = async (req: authRequest, res: Response) => {
-    try {
-       const userId = req.userId;
-       
+    res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        user: toSafeUser(updated),
+    });
+});
 
-    } catch (error) {
-        console.error(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false,
-           
-        });
-        return
-    }
-};
-
-export const logout = async (req: Request, res: Response) => {
-    try {
-         res.status(200).cookie("token", "", { maxAge: 0 }).json({
-            message: "Logged out successfully.",
-            success: true
-        });
-        return
-    } catch (error) {
-        console.log(error);
-         res.status(500).json({
-            message: "Server error",
-            success: false
-        });
-        return
-    }
-};
+export const logout = asyncHandler(async (_req: Request, res: Response) => {
+    res.status(200)
+        .cookie("token", "", { ...COOKIE_OPTIONS, maxAge: 0 })
+        .json({ success: true, message: "Logged out successfully." });
+});
