@@ -6,23 +6,12 @@ import axios from "axios";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PAYMENT_API_END_POINT, STRIPE_PUBLISHABLE_KEY } from "@/utils/constants";
+import { stripeCardStyle } from "@/design/stripe-appearance";
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 const cardElementOptions = {
-  style: {
-    base: {
-      color: "#f5efe3",
-      fontFamily: "CabinetGrotesk-Medium, sans-serif",
-      fontSize: "16px",
-      "::placeholder": {
-        color: "rgba(245, 239, 227, 0.45)",
-      },
-    },
-    invalid: {
-      color: "#cd725e",
-    },
-  },
+  style: stripeCardStyle,
 };
 
 function CheckoutForm({ clientSecret }) {

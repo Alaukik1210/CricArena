@@ -1,12 +1,39 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { CalendarClock, Check, LocateFixed, MapPin, StarIcon, Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { BOOKING_SESSION_API_END_POINT, GROUND_API_END_POINT, PAYMENT_API_END_POINT } from "@/utils/constants";
-import { MetricCard, ProductShell, SectionBlock } from "./ProductShell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PageShell, Section, Stat } from "@/components/ui/page-shell";
+import { ApiError, api } from "@/lib/api";
+import { useAppSelector } from "@/redux/store";
 
-const fallbackGrounds = [
+interface RawGround {
+  id: string | null;
+  name: string;
+  location: string;
+  rating?: number;
+  bookings?: number;
+  facilities?: string[] | string;
+  pricePerMatch: number;
+  pitchType?: string;
+  tag?: string;
+}
+
+interface Ground extends Omit<RawGround, "facilities"> {
+  facilities: string[];
+  tag: string;
+  isBookable: boolean;
+}
+
+interface BookingSessionResponse {
+  session?: { id?: string };
+}
+
+interface PaymentIntentResponse {
+  clientSecret?: string;
+}
+
+const fallbackGrounds: RawGround[] = [
   {
     id: null,
     name: "Sunrise Cricket Ground",
@@ -42,7 +69,7 @@ const fallbackGrounds = [
   },
 ];
 
-const toGroundView = (ground) => ({
+const toGroundView = (ground: RawGround): Ground => ({
   ...ground,
   facilities: Array.isArray(ground.facilities)
     ? ground.facilities
@@ -53,19 +80,19 @@ const toGroundView = (ground) => ({
   isBookable: Boolean(ground.id),
 });
 
-export default function Grounds() {
-  const [grounds, setGrounds] = useState([]);
+export default function GroundsPage() {
+  const [grounds, setGrounds] = useState<Ground[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingGroundId, setProcessingGroundId] = useState(null);
+  const [processingGroundId, setProcessingGroundId] = useState<string | null>(null);
   const [status, setStatus] = useState("");
-  const { user } = useSelector((store) => store.user);
+  const user = useAppSelector((store) => store.user.user);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${GROUND_API_END_POINT}/all`);
+        const response = await api.get<{ grounds?: RawGround[] }>("/ground/all");
         const liveGrounds = response.data?.grounds?.length
           ? response.data.grounds.map(toGroundView)
           : fallbackGrounds.map(toGroundView);
@@ -95,7 +122,7 @@ export default function Grounds() {
     [grounds],
   );
 
-  const handleBook = async (ground) => {
+  const handleBook = async (ground: Ground) => {
     if (!user?.id) {
       setStatus("Please login first to create a booking session.");
       navigate("/login");
@@ -111,15 +138,15 @@ export default function Grounds() {
       setProcessingGroundId(ground.id);
       setStatus("");
 
-      const bookingSessionResponse = await axios.post(BOOKING_SESSION_API_END_POINT, {
+      const bookingSessionResponse = await api.post<BookingSessionResponse>("/booking-sessions", {
         groundId: ground.id,
         amount: Number(ground.pricePerMatch),
       });
 
       const bookingSession = bookingSessionResponse.data?.session;
 
-      const response = await axios.post(
-        `${PAYMENT_API_END_POINT}/create-payment-intent`,
+      const response = await api.post<PaymentIntentResponse>(
+        "/payment/create-payment-intent",
         {
           amount: Number(ground.pricePerMatch) * 100,
           currency: "inr",
@@ -157,13 +184,17 @@ export default function Grounds() {
     } catch (error) {
       console.error("Error creating payment session:", error);
 
-      if (error.code === "ECONNABORTED") {
+      // The shared api client wraps failures in ApiError, which carries the
+      // HTTP status (0 when no response arrived) and the server message.
+      const apiError = error instanceof ApiError ? error : null;
+
+      if (apiError?.status === 0 && /timeout/i.test(apiError.message)) {
         setStatus("The payment request timed out. Please try again.");
-      } else if (error.response?.status === 401) {
+      } else if (apiError?.status === 401) {
         setStatus("Your session expired. Please login and try again.");
         navigate("/login");
       } else {
-        setStatus(error.response?.data?.message || "Could not create the booking session.");
+        setStatus(apiError?.message || "Could not create the booking session.");
       }
     } finally {
       setProcessingGroundId(null);
@@ -171,107 +202,108 @@ export default function Grounds() {
   };
 
   return (
-    <ProductShell
+    <PageShell
       kicker="Ground Booking"
       title="Choose a ground and move into checkout without confusion."
       description="This booking flow is designed to stay direct on mobile and desktop: clear card, one action, one payment path."
       actions={
-        <button type="button" className="cta-secondary" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        <Button type="button" variant="outline" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <LocateFixed className="mr-2 h-4 w-4" />
           Focus Top
-        </button>
+        </Button>
       }
     >
-      <section className="product-grid-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4">
         {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
+          <Stat key={metric.label} {...metric} />
         ))}
       </section>
 
       {status ? (
-        <div className="product-panel px-5 py-4 text-sm text-[#f0ddb0] md:px-6">
+        <div className="rounded border border-rule bg-surface px-5 py-4 text-sm text-pending md:px-6">
           {status}
         </div>
       ) : null}
 
-      <SectionBlock
+      <Section
         kicker="Available Grounds"
         title="Bookable inventory with direct value"
         description="The card tells you what matters first: location, trust signals, facilities, and whether checkout is live."
       >
         {loading ? (
-          <div className="product-grid-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="product-card animate-pulse">
-                <div className="h-40 rounded-[24px] bg-white/5" />
+              <div key={index} className="animate-pulse rounded border border-rule bg-surface p-5">
+                <div className="h-40 rounded bg-surface-sunk" />
                 <div className="mt-5 space-y-3">
-                  <div className="h-4 w-2/3 rounded bg-white/5" />
-                  <div className="h-3 w-1/2 rounded bg-white/5" />
-                  <div className="h-3 w-full rounded bg-white/5" />
+                  <div className="h-4 w-2/3 rounded bg-surface-sunk" />
+                  <div className="h-3 w-1/2 rounded bg-surface-sunk" />
+                  <div className="h-3 w-full rounded bg-surface-sunk" />
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="product-grid-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
             {grounds.map((ground) => (
-              <article key={`${ground.name}-${ground.location}`} className="product-card">
-                <div className="relative overflow-hidden rounded-[24px] border border-white/10">
+              <article key={`${ground.name}-${ground.location}`} className="rounded border border-rule bg-surface p-5">
+                <div className="relative overflow-hidden rounded border border-rule-soft">
                   <img
                     src="https://www.shutterstock.com/image-vector/night-cricket-stadium-illustration-vector-600nw-2160100275.jpg"
                     alt={ground.name}
                     className="h-44 w-full object-cover"
                   />
-                  <span className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${ground.isBookable ? "bg-[#d8b56d] text-black" : "bg-white/90 text-black"}`}>
+                  <Badge tone={ground.isBookable ? "pending" : "neutral"} className="absolute right-4 top-4">
                     {ground.tag}
-                  </span>
+                  </Badge>
                 </div>
 
                 <div className="mt-5 flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-xl font-cabinet-bold text-white">{ground.name}</h3>
-                    <p className="muted-copy mt-2 flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-[#d8b56d]" />
+                    <h3 className="font-body text-xl font-semibold text-ink">{ground.name}</h3>
+                    <p className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
+                      <MapPin className="h-4 w-4 text-pending" />
                       {ground.location}
                     </p>
                   </div>
-                  <span className="pill-gold">{ground.pitchType || "Cricket Ground"}</span>
+                  <Badge tone="pending">{ground.pitchType || "Cricket Ground"}</Badge>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 text-sm text-white/80">
-                  <div className="flex items-center gap-1 text-[#d8b56d]">
+                <div className="mt-4 flex items-center gap-2 text-sm text-ink-soft">
+                  <div className="flex items-center gap-1 text-pending">
                     {[...Array(Math.max(1, Math.floor(Number(ground.rating || 0))))].map((_, index) => (
                       <StarIcon key={index} className="h-4 w-4 fill-current" />
                     ))}
                   </div>
                   <span>{Number(ground.rating || 0).toFixed(1)}</span>
-                  <span className="text-white/30">•</span>
+                  <span className="text-ink-faint">•</span>
                   <span>{ground.bookings || 0} bookings</span>
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
                   {ground.facilities.length > 0 ? (
                     ground.facilities.slice(0, 4).map((facility) => (
-                      <span key={facility} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/80">
-                        <Check className="h-3.5 w-3.5 text-[#8bc78f]" />
+                      <span key={facility} className="inline-flex items-center gap-2 rounded border border-rule-soft bg-surface-sunk px-3 py-2 text-xs text-ink-soft">
+                        <Check className="h-3.5 w-3.5 text-go" />
                         {facility}
                       </span>
                     ))
                   ) : (
-                    <span className="muted-copy text-sm">Facilities not added yet.</span>
+                    <span className="text-sm text-ink-soft">Facilities not added yet.</span>
                   )}
                 </div>
 
                 <div className="mt-6 flex items-center justify-between gap-4">
                   <div>
-                    <p className="section-kicker mb-1">Match Price</p>
-                    <p className="text-2xl font-cabinet-black text-white">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-soft">Match Price</p>
+                    <p className="font-display text-2xl text-ink">
                       ₹{Number(ground.pricePerMatch || 0).toLocaleString()}
                     </p>
                   </div>
-                  <button
+                  <Button
                     type="button"
-                    className={ground.isBookable ? "cta-primary" : "cta-secondary opacity-80"}
+                    variant={ground.isBookable ? "default" : "outline"}
+                    className={ground.isBookable ? undefined : "opacity-80"}
                     disabled={processingGroundId === ground.id}
                     onClick={() => handleBook(ground)}
                   >
@@ -286,13 +318,13 @@ export default function Grounds() {
                         {ground.isBookable ? "Book Ground" : "Preview Only"}
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </article>
             ))}
           </div>
         )}
-      </SectionBlock>
-    </ProductShell>
+      </Section>
+    </PageShell>
   );
 }

@@ -15,7 +15,7 @@ const Login = lazy(() => import("../features/auth/Login"));
 const SignUp = lazy(() => import("../features/auth/SignUp"));
 const Tours = lazy(() => import("../components/Tours.jsx"));
 const PlayerProfile = lazy(() => import("../components/PlayerProfile.jsx"));
-const Grounds = lazy(() => import("../components/Grouds.jsx"));
+const GroundsPage = lazy(() => import("../features/grounds/GroundsPage"));
 const About_cric = lazy(() => import("../features/marketing/About_cric"));
 const RegisterTour = lazy(() => import("../components/RegisterTour.jsx"));
 const CheckoutPage = lazy(() => import("../components/CheckoutPage.jsx"));
@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
             { path: "/signup", element: lazyRoute(SignUp) },
             { path: "/tournaments", element: lazyRoute(Tours) },
             { path: "/profile/:id", element: lazyRoute(PlayerProfile) },
-            { path: "/grounds", element: lazyRoute(Grounds) },
+            { path: "/grounds", element: lazyRoute(GroundsPage) },
             { path: "/discover", element: lazyRoute(DiscoverPage) },
             { path: "/rooms", element: lazyRoute(RoomsHub) },
             { path: "/bookings", element: lazyRoute(BookingsHub) },
