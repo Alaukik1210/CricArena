@@ -18,9 +18,21 @@ describe("Button", () => {
         expect(screen.getByRole("button")).toHaveClass("w-full");
     });
 
-    it("uses no banned radius utility", () => {
-        render(<Button>Flat</Button>);
-        const cls = screen.getByRole("button").className;
-        expect(cls).not.toMatch(/rounded-(2xl|3xl|full)/);
+    it("uses no banned radius utility in any variant or size", () => {
+        const variants = ["default", "outline", "ghost", "urgent"] as const;
+        const sizes = ["default", "sm", "lg", "icon"] as const;
+
+        for (const variant of variants) {
+            for (const size of sizes) {
+                const { container, unmount } = render(
+                    <Button variant={variant} size={size}>
+                        Flat
+                    </Button>,
+                );
+                const cls = container.querySelector("button")!.className;
+                expect(cls, `${variant}/${size}`).not.toMatch(/rounded-(2xl|3xl|full)/);
+                unmount();
+            }
+        }
     });
 });

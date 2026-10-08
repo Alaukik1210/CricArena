@@ -25,5 +25,5 @@ const Badge = ({ className, tone, ...props }: BadgeProps) => (
     <span className={cn(badgeVariants({ tone }), className)} {...props} />
 );
 
-// `badgeVariants` is intentionally not exported — same reason as buttonVariants.
+// `badgeVariants` is intentionally not exported - same reason as buttonVariants.
 export { Badge };
