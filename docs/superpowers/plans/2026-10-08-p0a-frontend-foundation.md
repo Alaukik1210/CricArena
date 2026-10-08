@@ -1788,7 +1788,19 @@ createRoot(rootElement).render(
 );
 ```
 
-The global `axios.defaults.withCredentials = true` line is **deleted**. Legacy `.jsx` components still relying on it are migrated to the typed client in Tasks 9–13; if a screen breaks before then, that is the signal it still uses raw `axios` and needs migrating.
+**Keep `axios.defaults.withCredentials = true` for now**, moved into `app/providers.tsx` with a deprecation comment. Fourteen components still import raw `axios` — `BookingsHub`, `Discover`, `Grouds`, `Matchups`, `Navbar`, `OrganizerAnalytics`, `OwnerAnalytics`, `PlayerProfile`, `RegisterTour`, `RoomsHub`, `SignUp`, `StripeCheckoutWrapper`, `TournamentHostingForm`, `Tours` — and they all depend on that global to send the auth cookie. Deleting it here would silently break every authenticated request in all fourteen for the five tasks until they migrate, and the failure mode is a 401 at runtime, not a build error.
+
+Add this near the top of `app/providers.tsx`:
+
+```ts
+import axios from "axios";
+
+// DEPRECATED - 14 legacy components still call raw axios and rely on this
+// global to send the auth cookie. They migrate to the typed `api` client in
+// Tasks 9-13; Task 13 removes this line once none remain. Do not add new
+// raw-axios callers.
+axios.defaults.withCredentials = true;
+```
 
 - [ ] **Step 9: Verify**
 
@@ -2347,6 +2359,16 @@ cd Client/src && git mv lib/utils.js lib/utils.ts && git mv utils/constants.js u
 ```
 
 Add types to `cn`. (`hooks/use-toast.js` is not here — Step 3a deleted it as dead code.)
+
+- [ ] **Step 5b: Remove the deprecated global axios default**
+
+Task 8 kept `axios.defaults.withCredentials = true` in `app/providers.tsx` because fourteen components still used raw `axios`. They have all migrated now. Prove it, then delete the line and its comment:
+
+```bash
+cd Client && grep -rn "from ['\"]axios['\"]" src/ || echo "NO RAW AXIOS CALLERS"
+```
+
+Expected: only `src/lib/api.ts` (which legitimately imports axios to build the client) and `app/providers.tsx` itself. **If any component still appears, stop** — migrate it before deleting the global, or its authenticated requests start returning 401 at runtime with no build error.
 
 - [ ] **Step 6: Assert the migration is complete**
 
