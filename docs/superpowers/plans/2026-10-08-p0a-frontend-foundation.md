@@ -2737,7 +2737,7 @@ Expected: `NO DEAD CLASSES`.
 ```bash
 cd e:/MERN/CricArena/Client
 echo "— fonts —"      && npx vite build 2>&1 | grep -c woff2
-echo "— no hex —"     && (grep -rEl "#[0-9a-fA-F]{6}" src/features src/components 2>/dev/null || echo clean)
+echo "— no hex —"     && (grep -rEl "#[0-9a-fA-F]{6}" src/features src/components 2>/dev/null | grep -v "src/features/marketing/" || echo clean)
 echo "— no jsx —"     && (find src -name "*.jsx" -o -name "*.js" | grep -v node_modules || echo clean)
 echo "— typecheck —"  && npx tsc --noEmit && echo ok
 echo "— lint —"       && npx eslint . && echo ok
@@ -2753,7 +2753,7 @@ Every line must report success. Against [docs/PLAN.md §11](../../PLAN.md):
 | Claim | Check |
 |---|---|
 | Fonts load | woff2 count > 0 |
-| One token system | no hex outside `design/` |
+| One token system | no hex outside `design/` (plus the `features/marketing/` P1 exemption) |
 | `Web/` gone | already untracked via `.gitignore` |
 | TS migration done | no `.jsx`/`.js` under `src/` |
 | Lint clean | `eslint .` exit 0 |
