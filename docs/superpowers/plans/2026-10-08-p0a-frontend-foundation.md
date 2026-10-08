@@ -2680,7 +2680,12 @@ Append to `Client/eslint.config.js`, before the closing `]`:
   // Layer 3 never writes a colour. docs/PLAN.md §6.
   {
     files: ['src/features/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
-    ignores: ['src/design/**'],
+    // src/features/marketing is exempt until P1. Those 11 components carry 45
+    // raw hex literals and the legacy gold* palette; restyling a landing page
+    // is design work, not mechanical migration, and P0a's remit is "nothing new
+    // ships, existing things become correct". Remove this exemption as part of
+    // the P1 marketing redesign - see docs/PLAN.md section 4.
+    ignores: ['src/design/**', 'src/features/marketing/**'],
     rules: {
       'no-restricted-syntax': [
         'error',

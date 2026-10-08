@@ -137,6 +137,8 @@ Nothing new ships; existing things become correct and coherent.
 
 Apply the Maidan system screen by screen, highest-traffic first: discovery → rooms → grounds/slots → booking → profile → analytics → tournaments → marketing. Designed empty states and skeleton loaders throughout.
 
+**The marketing surface is explicitly P1, not P0a.** P0a moves those 11 components into `features/marketing/` and converts them to TypeScript, but leaves their visuals alone: they carry a legacy `gold`/`goldx`/`orangex` palette, 45 raw hex literals, and bespoke GSAP animation. Deciding what those become on a landing page is design judgement, not a mechanical class substitution, and P0a's remit is "nothing new ships; existing things become correct". Until this phase runs, `features/marketing/**` is exempt from the no-raw-hex lint rule and the legacy colour tokens stay in `tailwind.config.js`, both marked DEPRECATED. Removing that exemption and those tokens is part of this phase's definition of done.
+
 ### P2 — GenAI Tier 1
 
 Natural-language discovery, squad-fit matching, organizer co-pilot. See §8.
