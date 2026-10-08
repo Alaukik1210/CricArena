@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { toast } from "sonner";
+import { emitUnauthorized } from "./auth-events";
 
 export const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
@@ -40,8 +41,7 @@ const createClient = (): AxiosInstance => {
                 "Something went wrong. Please try again.";
 
             if (status === 401) {
-                // Optional: dispatch a logout / redirect signal
-                window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+                emitUnauthorized();
             }
 
             return Promise.reject(new ApiError(message, status, data?.details));
