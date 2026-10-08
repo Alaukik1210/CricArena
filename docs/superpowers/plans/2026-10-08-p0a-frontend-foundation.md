@@ -12,7 +12,7 @@
 
 - **Branch:** `refactor/platform-foundation`. Commit after every task.
 - **Repo root:** `e:\MERN\CricArena`. Client is `Client/`, server is `Server/`.
-- **Palette — these exact hex values, no substitutions:** `--ground #D9C9A8`, `--surface #FAF7F0`, `--surface-sunk #CFBE9B`, `--ink #2B2520`, `--ink-soft #6E665C`, `--ink-faint #A79D90`, `--go #3F6B47`, `--urgent #A32A1F`, `--pending #B07B2A`.
+- **Palette — these exact hex values, no substitutions:** `--ground #D9C9A8`, `--surface #FAF7F0`, `--surface-sunk #CFBE9B`, `--ink #2B2520`, `--ink-soft #6E665C`, `--ink-faint #A79D90`, `--go #3F6B47`, `--urgent #A32A1F`, `--pending #8B6121`.
 - **`--radius` is `3px`.** No Tailwind radius utility above `rounded-[3px]` may be introduced.
 - **Banned visual patterns:** no gradients, no `box-shadow` glows, no `rounded-2xl`/`rounded-3xl`/`rounded-full` on panels, no translucent white overlays (`bg-white/5`, `border-white/10`). Elevation = 1px `--rule` + the tonal step from `--ground` to `--surface`.
 - **Typefaces:** Anton (display, H1–H2 only), Inter Tight (body), IBM Plex Mono (all numerals, with `font-variant-numeric: tabular-nums`).
@@ -499,7 +499,7 @@ instead of degrading silently."
     /* semantic — each maps to a cricket meaning, not a mood */
     --go: #3F6B47;
     --urgent: #A32A1F;
-    --pending: #B07B2A;
+    --pending: #8B6121;
 
     /* line */
     --rule: #2B2520;
@@ -2711,6 +2711,38 @@ cd Client && npx vitest run src/app/Layout.test.tsx
 ```
 
 Expected: `2 passed`.
+
+- [ ] **Step 4b: Verify the palette actually meets contrast**
+
+The a11y floor is not just focus rings and reduced motion. Task 12 discovered by measuring that `--pending` at its original `#B07B2A` failed WCAG AA on every surface, which is why it is now `#8B6121`. Make that check mechanical rather than incidental.
+
+Run this and record the table in your report:
+
+```bash
+cd Client && python - <<'EOF'
+def lum(hx):
+    hx = hx.lstrip("#")
+    def ch(v):
+        v = int(v, 16) / 255
+        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+    return 0.2126 * ch(hx[0:2]) + 0.7152 * ch(hx[2:4]) + 0.0722 * ch(hx[4:6])
+
+def ratio(a, b):
+    la, lb = lum(a), lum(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+
+surfaces = {"ground": "#D9C9A8", "surface": "#FAF7F0", "surface-sunk": "#CFBE9B"}
+inks = {"ink": "#2B2520", "ink-soft": "#6E665C", "ink-faint": "#A79D90",
+        "go": "#3F6B47", "urgent": "#A32A1F", "pending": "#8B6121"}
+for n, c in inks.items():
+    print(n, {s: round(ratio(c, v), 2) for s, v in surfaces.items()})
+EOF
+```
+
+**Expected and accepted:** `ink` passes AA everywhere. `ink-soft`, `go`, `urgent` and `pending` pass AA on `surface` and AA-large on `ground`/`surface-sunk` - so they are for headings, labels and accents on those two, not body copy. `ink-faint` fails everywhere by design: it is only for placeholders and disabled controls, which WCAG exempts. Do not "fix" `ink-faint` by darkening it; that would erase the distinction from `ink-soft`.
+
+If any value regresses below these thresholds, stop and report rather than adjusting a token yourself.
 
 - [ ] **Step 5: Split vendor chunks**
 

@@ -173,7 +173,7 @@ Derived from the lived texture of local Indian cricket: dust, chalk creases, wor
   /* semantic — each maps to a cricket meaning, not a mood */
   --go:           #3F6B47;  /* available, confirmed (turf) */
   --urgent:       #A32A1F;  /* live, closing, spots-low (leather) */
-  --pending:      #B07B2A;  /* awaiting approval, payment pending */
+  --pending:      #8B6121;  /* awaiting approval, payment pending */
 
   /* line */
   --rule:         #2B2520;        /* 1px, full strength — chalk is crisp */
