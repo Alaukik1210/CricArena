@@ -1,7 +1,8 @@
 import { ArrowRight, CalendarRange, Compass, MapPinned, ShieldCheck, Ticket, Trophy, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppSelector } from "./redux/store";
-import { MetricCard, ProductShell, SectionBlock } from "./components/ProductShell";
+import { PageShell, Section, Stat } from "./components/ui/page-shell";
+import { Button } from "./components/ui/button";
 import Landing from "./features/marketing/Landing";
 
 const valuePoints = [
@@ -49,125 +50,145 @@ function App() {
   ];
 
   return (
-    <ProductShell
+    <PageShell
       kicker="CricArena"
       title="Local cricket, without the usual coordination mess."
       description="Discover nearby players, open rooms, book grounds, and manage tournaments from one standard product flow built for repeat play."
       actions={
         <>
-          <Link to={user ? "/discover" : "/signup"} className="cta-primary">
-            <Compass className="mr-2 h-4 w-4" />
-            {user ? "Open Discovery" : "Start Playing"}
-          </Link>
-          <Link to="/grounds" className="cta-secondary">
-            <Ticket className="mr-2 h-4 w-4" />
-            Explore Grounds
-          </Link>
+          <Button asChild>
+            <Link to="/discover">
+              <Compass />
+              Open Discovery
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/grounds">
+              <Ticket />
+              Explore Grounds
+            </Link>
+          </Button>
         </>
       }
     >
-      <section className="product-grid-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4">
         {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
+          <Stat key={metric.label} {...metric} />
         ))}
       </section>
 
-      <div className="product-grid-2">
-        <SectionBlock
+      <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-2">
+        <Section
           kicker="What You Can Do"
           title="One product, three immediate jobs"
           description="Each area should create direct value in one glance and one action."
         >
-          <div className="product-grid-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
             {valuePoints.map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.title} to={item.href} className="product-card transition hover:border-[#d8b56d]/50">
+                <Link
+                  key={item.title}
+                  to={item.href}
+                  className="rounded border border-rule bg-surface p-5 transition hover:border-pending"
+                >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                      <Icon className="h-5 w-5 text-[#d8b56d]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded border border-rule-soft bg-surface-sunk">
+                      <Icon className="h-5 w-5 text-ink" />
                     </div>
-                    <ArrowRight className="h-4 w-4 text-white/40" />
+                    <ArrowRight className="h-4 w-4 text-ink-soft" />
                   </div>
-                  <h2 className="mt-5 text-2xl font-cabinet-bold text-white">{item.title}</h2>
-                  <p className="muted-copy mt-3 text-sm leading-6">{item.text}</p>
+                  <h2 className="mt-5 font-display text-2xl uppercase tracking-wide text-ink">{item.title}</h2>
+                  <p className="mt-3 text-sm leading-6 text-ink-soft">{item.text}</p>
                 </Link>
               );
             })}
           </div>
-        </SectionBlock>
+        </Section>
 
-        <SectionBlock
+        <Section
           kicker="Why It Works"
           title="Standard product spine"
           description="The platform stays understandable because every important flow follows the same rhythm."
         >
           <div className="space-y-3">
             {spine.map((step, index) => (
-              <div key={step} className="product-card flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-[#f0ddb0]">
+              <div key={step} className="flex items-start gap-4 rounded border border-rule bg-surface p-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-rule-soft bg-surface-sunk font-data text-sm font-semibold text-ink">
                   {index + 1}
                 </div>
-                <p className="text-sm leading-7 text-white/85">{step}</p>
+                <p className="text-sm leading-7 text-ink">{step}</p>
               </div>
             ))}
           </div>
-        </SectionBlock>
+        </Section>
       </div>
 
-      <div className="product-grid-3">
-        <SectionBlock
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
+        <Section
           kicker="Players"
           title="Find the right game faster"
           description="Turn on visibility, set your radius, and join rooms that fit your level and time."
         >
           <div className="flex flex-wrap gap-3">
-            <Link to="/discover" className="cta-primary">
-              <MapPinned className="mr-2 h-4 w-4" />
-              Discover Nearby
-            </Link>
-            <Link to="/rooms" className="cta-secondary">
-              <Users className="mr-2 h-4 w-4" />
-              Manage Rooms
-            </Link>
+            <Button asChild>
+              <Link to="/discover">
+                <MapPinned />
+                Discover Nearby
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/rooms">
+                <Users />
+                Manage Rooms
+              </Link>
+            </Button>
           </div>
-        </SectionBlock>
+        </Section>
 
-        <SectionBlock
+        <Section
           kicker="Owners"
           title="Fill inventory with more confidence"
           description="Track grounds, bookings, and revenue from a clearer operating view."
         >
           <div className="flex flex-wrap gap-3">
-            <Link to="/grounds" className="cta-primary">
-              <CalendarRange className="mr-2 h-4 w-4" />
-              View Grounds
-            </Link>
-            <Link to="/owner/analytics" className="cta-secondary">
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              Owner Analytics
-            </Link>
+            <Button asChild>
+              <Link to="/grounds">
+                <CalendarRange />
+                View Grounds
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/owner/analytics">
+                <ShieldCheck />
+                Owner Analytics
+              </Link>
+            </Button>
           </div>
-        </SectionBlock>
+        </Section>
 
-        <SectionBlock
+        <Section
           kicker="Organizers"
           title="Run tournaments with less manual follow-up"
           description="Monitor registrations and projected value without chasing updates across multiple screens."
         >
           <div className="flex flex-wrap gap-3">
-            <Link to="/tournaments" className="cta-primary">
-              <Trophy className="mr-2 h-4 w-4" />
-              Open Tournaments
-            </Link>
-            <Link to="/organizer/analytics" className="cta-secondary">
-              <ArrowRight className="mr-2 h-4 w-4" />
-              Organizer Analytics
-            </Link>
+            <Button asChild>
+              <Link to="/tournaments">
+                <Trophy />
+                Open Tournaments
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/organizer/analytics">
+                <ArrowRight />
+                Organizer Analytics
+              </Link>
+            </Button>
           </div>
-        </SectionBlock>
+        </Section>
       </div>
-    </ProductShell>
+    </PageShell>
   );
 }
 

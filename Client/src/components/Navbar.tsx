@@ -114,7 +114,7 @@ const Navbar = () => {
                     {user ? (
                         <Popover>
                             <PopoverTrigger asChild>
-                                <button type="button" aria-label="Account menu" className="rounded-full border border-rule-soft p-1">
+                                <button type="button" aria-label="Account menu" className="rounded border border-rule-soft p-1">
                                     <Avatar className="h-10 w-10 cursor-pointer">
                                         <AvatarImage src={user.profile?.profilePhoto || userAvatarFallback} alt="" />
                                     </Avatar>
