@@ -5,11 +5,11 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-import { authApi, type AuthResponse, type LoginRequest } from "../features/auth/auth.api";
-import { loginFormSchema, type LoginFormValues } from "../features/auth/auth.schemas";
-import { useAppDispatch } from "../redux/store";
-import { setUser } from "../redux/userSlice";
-import { showApiError } from "../lib/api";
+import { authApi, type AuthResponse, type LoginRequest } from "./auth.api";
+import { loginFormSchema, type LoginFormValues } from "./auth.schemas";
+import { useAppDispatch } from "@/redux/store";
+import { setUser } from "@/redux/userSlice";
+import { showApiError } from "@/lib/api";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -40,7 +40,7 @@ const Login = () => {
 
     return (
         <div className="h-screen bg-black flex items-center justify-center">
-            <div className="max-w-md w-full font-cabinet-extrabold p-6 bg-[#3d3d3d] rounded-lg shadow-lg">
+            <div className="max-w-md w-full font-display p-6 bg-[#3d3d3d] rounded-lg shadow-lg">
                 <h2 className="text-3xl font-bold text-[#FFD070] text-center mb-6">
                     Login to CricArena
                 </h2>

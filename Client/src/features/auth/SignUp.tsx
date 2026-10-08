@@ -1,12 +1,14 @@
-import axios from "axios";
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { USER_API_END_POINT } from "../utils/constants";
-import { useDispatch, useSelector } from "react-redux";
-import { setLoading } from "@/redux/authSlice";
-import { Button } from "react-scroll";
 import { Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
+import { setLoading } from "@/redux/authSlice";
 import { setUser } from "@/redux/userSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import type { Role } from "@/types/user";
+import type { AuthResponse, RegisterRequest } from "./auth.api";
+
+type SignUpForm = Omit<RegisterRequest, "role"> & { role: Role };
 
 const SignUp = () => {
   const statesAndCities = [
@@ -61,11 +63,11 @@ const SignUp = () => {
       ],
     },
   ];
-  const dispatch = useDispatch();
-  const {loading} = useSelector(store=>store.auth)
+  const dispatch = useAppDispatch();
+  const {loading} = useAppSelector((store) => store.auth)
   // 
   const navigate = useNavigate();
-  const [input, setInput] = useState({
+  const [input, setInput] = useState<SignUpForm>({
     fullname: "",
     email: "",
     phoneNumber: "",
@@ -75,7 +77,7 @@ const SignUp = () => {
     city: "",
   });
 
-  const changeEventHandler = (e) => {
+  const changeEventHandler = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "state") {
       setInput({
@@ -92,7 +94,7 @@ const SignUp = () => {
   };
 
   // Updated submit handler
-  const onSubmitHandler = async (e) => {
+  const onSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Validate all required fields
@@ -104,7 +106,7 @@ const SignUp = () => {
     try {
       // Send data as JSON instead of FormData
       dispatch(setLoading(true));
-      const response = await axios.post(`${USER_API_END_POINT}/register`, {
+      const response = await api.post<AuthResponse>("/user/register", {
         fullname: input.fullname,
         email: input.email,
         phoneNumber: input.phoneNumber,
@@ -112,11 +114,6 @@ const SignUp = () => {
         role: input.role,
         state: input.state,
         city: input.city
-      }, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
       });
 
       console.log("Server Response:", response.data);
@@ -127,14 +124,14 @@ const SignUp = () => {
       }
     } catch (error) {
       console.error("Registration error:", error);
-      alert(error.response?.data?.message || "Registration failed. Please try again.");
+      alert(error instanceof Error && error.message ? error.message : "Registration failed. Please try again.");
     }finally{
       dispatch(setLoading(false))
     }
   };
 
   return (
-    <div className="h-screen pt-12 bg-black   font-cabinet-extrabold flex items-center justify-center">
+    <div className="h-screen pt-12 bg-black   font-display flex items-center justify-center">
       <div className="max-w-md w-full p-6 bg-[#3d3d3d] rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-[#FFD070] text-center mb-6">
           Sign Up for CricArena
@@ -250,7 +247,7 @@ const SignUp = () => {
           </div>
           <div className="flex items-center justify-between">
           {
-              loading?<Button className='w-full bg-[#FFD070] text-black font-bold py-2 px-4 rounded h-10 flex items-center justify-center gap-2'> <Loader2   className='text-center   animate-spin'/> Please wait</Button> : <button
+              loading?<button type="button" disabled className='w-full bg-[#FFD070] text-black font-bold py-2 px-4 rounded h-10 flex items-center justify-center gap-2'> <Loader2   className='text-center   animate-spin'/> Please wait</button> : <button
             
               type="submit"
               className="w-full bg-[#FFD070]  text-black font-bold py-2 px-4 rounded group relative h-10  overflow-hidden  text-md  border-gold  text-center"

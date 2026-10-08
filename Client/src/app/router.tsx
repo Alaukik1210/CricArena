@@ -11,8 +11,8 @@ const TicketBookingForm = lazy(() => import("../components/TicketBookingForm.jsx
 const PlayerRegistrationForm = lazy(() => import("../components/PlayerRegistrationForm.jsx"));
 const TournamentHostingForm = lazy(() => import("../components/TournamentHostingForm.jsx"));
 const CricketScoreboard = lazy(() => import("../components/CricketScoreboard.jsx"));
-const Login = lazy(() => import("../components/Login"));
-const SignUp = lazy(() => import("../components/SignUp.jsx"));
+const Login = lazy(() => import("../features/auth/Login"));
+const SignUp = lazy(() => import("../features/auth/SignUp"));
 const Tours = lazy(() => import("../components/Tours.jsx"));
 const PlayerProfile = lazy(() => import("../components/PlayerProfile.jsx"));
 const Grounds = lazy(() => import("../components/Grouds.jsx"));
