@@ -528,7 +528,7 @@ body {
 
 - [ ] **Step 2: Rewrite `Client/src/index.css`**
 
-Replace the **entire** file with:
+Replace the file with the following. Note this is **additive**: the Maidan tokens arrive, but the legacy shadcn `:root` block and the `.product-*` classes are **kept, marked deprecated**, because 24 files still consume them and are not migrated until Tasks 9-13. Deleting them here would leave the app unstyled for ten commits. Task 15 removes the legacy block once a grep proves no consumer remains.
 
 ```css
 @import "./design/fonts.css";
@@ -539,10 +539,6 @@ Replace the **entire** file with:
 @tailwind utilities;
 
 @layer base {
-    * {
-        border-color: var(--rule-soft);
-    }
-
     /* Accessibility floor — expanded in Task 14. */
     :focus-visible {
         outline: 2px solid var(--ink);
@@ -560,9 +556,18 @@ Replace the **entire** file with:
         }
     }
 }
+
+/* ===================================================================
+   DEPRECATED — legacy token system and utility classes.
+   24 files still consume these; they migrate in Tasks 4 and 9-13.
+   Task 15 deletes this whole block once grep proves zero consumers.
+   Do NOT add new usages. See docs/PLAN.md §5.
+   =================================================================== */
 ```
 
-This deletes the shadcn `:root`/`.dark` HSL block (never activated — `.dark` was applied nowhere), the `--arena-*` variables, and every `.product-page` / `.product-shell` / `.product-panel` / `.product-hero` / `.product-grid*` / `.section-*` / `.display-title` / `.product-card` / `.stat-*` / `.muted-copy` / `.pill-*` / `.standard-*` / `.cta-*` / `.surface-divider` class. Those are replaced by primitives in Task 4.
+Below that marker, **keep verbatim** everything already in the file from the `@layer base { :root { --background: ... } }` shadcn block through the final `.surface-divider` rule. Change nothing inside it — it is scaffolding with a scheduled demolition date, not code to improve.
+
+Why keep it: `avatar.jsx`, `popover.jsx`, `select.jsx`, `tabs.jsx`, and `toast.jsx` reference the shadcn HSL utilities (`bg-popover`, `text-card-foreground`, …) and stay `.jsx` until Task 13; 24 files reference the `.product-*` / `cta-*` classes. Deleting either set now breaks the running app for ten commits with no compensating benefit.
 
 - [ ] **Step 3: Rewrite `Client/tailwind.config.js`**
 
@@ -602,8 +607,18 @@ export default {
                 md: "var(--radius)",
                 lg: "var(--radius)",
             },
+            // Only the nine actually referenced in src/. Verified with:
+            //   grep -rhoE "bg-(hero-pattern|matches[0-9]*|ball|banner[0-9]*|bann)" src/ | sort -u
             backgroundImage: {
                 "hero-pattern": 'url("/src/assets/herobg.png")',
+                matches: 'url("/src/assets/matchbg1.png")',
+                matches1: 'url("/src/assets/matchbg2.jpg")',
+                matches2: 'url("/src/assets/matchbg3.jpg")',
+                matches3: 'url("/src/assets/matchbg4.jpg")',
+                ball: 'url("/src/assets/ballbg1.png")',
+                banner: 'url("/src/assets/banner1.png")',
+                banner3: 'url("/src/assets/banner3.png")',
+                bann: 'url("/src/assets/bann.png")',
             },
             screens: { xs: "475px" },
         },
@@ -612,7 +627,9 @@ export default {
 };
 ```
 
-Removed: `darkMode` (there is no dark theme), the `goldy`/`gold`/`goldx`/`orangex` literals, all shadcn HSL mappings, all eight `cabinet-*` families and the three Product Sans families, eleven unused `backgroundImage` entries, the unused `animate` keyframe, and `tailwindcss-animate` (nothing referenced it).
+Removed: `darkMode` (there is no dark theme), the `goldy`/`gold`/`goldx`/`orangex` literals, all eight `cabinet-*` families and the three Product Sans families, the three genuinely unused `backgroundImage` entries (`matches4`, `matches5`, `banner2`), the unused `animate` keyframe, and `tailwindcss-animate` (nothing referenced it).
+
+**Kept deliberately:** the shadcn HSL colour mappings (`background`, `card`, `popover`, `primary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`). Five `ui/*.jsx` primitives still use them and are not converted until Task 13; removing the mappings now would break them. Task 15 deletes the mappings together with the `:root` block that backs them.
 
 - [ ] **Step 4: Build and expect failures — this is the inventory**
 
@@ -2165,9 +2182,27 @@ git mv components/Navbar.jsx components/Navbar.tsx
 
 Fix the `useEffect` missing-dependency warning in `CricketScoreboard` by wrapping `saveToLocalStorage` in `useCallback`.
 
-- [ ] **Step 3: Convert the remaining Radix primitives**
+- [ ] **Step 3a: Delete the dead shadcn toast system**
 
-Convert `avatar`, `popover`, `select`, `tabs`, `toast`, `toaster` to `.tsx` with `React.ComponentPropsWithoutRef<typeof X.Root>` typing, and rewire their colours to tokens. Delete each `.jsx`.
+`main.tsx` renders `sonner`'s `Toaster`. Nothing imports `@/components/ui/toast`, `@/components/ui/toaster`, or `use-toast` — verify, then delete:
+
+```bash
+cd Client && grep -rn "use-toast\|ui/toast\|ui/toaster" src/ --include=*.tsx --include=*.ts --include=*.jsx --include=*.js | grep -v "src/components/ui/toast\|src/hooks/use-toast"
+```
+
+Expected: **no output.** Then:
+
+```bash
+cd Client/src && git rm components/ui/toast.jsx components/ui/toaster.jsx hooks/use-toast.js
+```
+
+This removes ~200 lines of dead code carrying 8 of the remaining lint errors (7 `react/prop-types` in `toast.jsx`, 1 `no-unused-vars` for `actionTypes` in `use-toast.js`). If the grep **does** return a hit, stop and report — do not delete a live dependency.
+
+- [ ] **Step 3b: Convert the live Radix primitives**
+
+Convert `avatar`, `popover`, `select`, `tabs` to `.tsx` using `React.ComponentPropsWithoutRef<typeof X.Root>` typing, and rewire their colours from the shadcn utilities to Maidan tokens (`bg-popover` → `bg-surface`, `text-popover-foreground` → `text-ink`, `border-input` → `border-rule`, `text-muted-foreground` → `text-ink-soft`, `bg-accent` → `bg-surface-sunk`). Delete each `.jsx`.
+
+`avatar.tsx` legitimately needs `rounded-full` — a circular avatar is intentional. Keep it; Task 15 adds the one sanctioned lint exemption for it.
 
 - [ ] **Step 4: Migrate `App.tsx`, then delete `ProductShell.jsx`**
 
@@ -2196,10 +2231,10 @@ Expected: `NO SHELL REFERENCES`.
 - [ ] **Step 5: Convert the remaining JS modules**
 
 ```bash
-cd Client/src && git mv lib/utils.js lib/utils.ts && git mv utils/constants.js utils/constants.ts && git mv hooks/use-toast.js hooks/use-toast.ts
+cd Client/src && git mv lib/utils.js lib/utils.ts && git mv utils/constants.js utils/constants.ts
 ```
 
-Add types to `cn`. Remove the unused `actionTypes` variable in `use-toast`.
+Add types to `cn`. (`hooks/use-toast.js` is not here — Step 3a deleted it as dead code.)
 
 - [ ] **Step 6: Assert the migration is complete**
 
@@ -2337,7 +2372,18 @@ build: {
 cd Client/src/assets && for f in *.jpg *.png; do npx -y sharp-cli -i "$f" -o "${f%.*}.webp" -f webp -q 82 2>/dev/null || true; done
 ```
 
-Update every import to `.webp`, then delete the originals **only** once `npx vite build` passes. If `sharp-cli` is unavailable, skip this step and note it — it is an optimisation, not a correctness fix.
+Then update **both** reference sites, not just one:
+
+1. Every `import x from "../assets/*.png"` in `src/`.
+2. **`tailwind.config.js` `backgroundImage`** — nine entries point at `url("/src/assets/*.png|jpg")`. These are plain strings, so TypeScript will not catch a stale path; a missed one silently renders no background.
+
+Verify before deleting the originals:
+
+```bash
+cd Client && grep -rn "assets/.*\.\(png\|jpg\|jpeg\)" src/ tailwind.config.js || echo "ALL MIGRATED"
+```
+
+Delete the originals **only** once that prints `ALL MIGRATED` and `npx vite build` passes. If `sharp-cli` is unavailable, skip this step entirely and note it — it is an optimisation, not a correctness fix, and a half-migrated asset set is worse than none.
 
 - [ ] **Step 7: Verify and commit**
 
@@ -2368,6 +2414,31 @@ chunk exceeds 500 kB."
 **Interfaces:**
 - Consumes: everything prior.
 - Produces: a lint rule that fails the build on raw colour literals outside `src/design/`.
+
+- [ ] **Step 0: Demolish the deprecated legacy block (deferred from Task 3)**
+
+Task 3 kept the shadcn `:root` block and the `.product-*` / `cta-*` utility classes alive so the app stayed styled while Tasks 4 and 9-13 migrated their 24 consumers. Those consumers are now gone. Prove it, then delete.
+
+First, prove zero consumers remain:
+
+```bash
+cd Client && grep -rnE "product-(page|shell|panel|hero|card|grid)|section-(kicker|title|copy)|display-title|stat-(card|value)|muted-copy|pill-(accent|gold)|standard-(input|select|textarea)|cta-(primary|secondary)|surface-divider|font-cabinet" src/ || echo "NO LEGACY CLASS CONSUMERS"
+cd Client && grep -rnE "bg-(background|card|popover|primary|secondary|muted|accent|destructive)|text-(foreground|card-foreground|popover-foreground|primary-foreground|secondary-foreground|muted-foreground|accent-foreground|destructive-foreground)|border-(border|input)|ring-ring" src/ || echo "NO SHADCN UTILITY CONSUMERS"
+```
+
+Both must print their `NO …` line. **If either returns hits, stop** — a consumer was missed in Tasks 9-13. Report which file, migrate it, then resume. Do not delete CSS that something still uses.
+
+Once both are clean, delete from `Client/src/index.css` everything below the `DEPRECATED` marker comment Task 3 added — the `@layer base { :root { --background … } }` shadcn block, the `.dark` block, the `--arena-*` variables, and every `.product-*` / `.section-*` / `.display-title` / `.stat-*` / `.muted-copy` / `.pill-*` / `.standard-*` / `.cta-*` / `.surface-divider` rule — including the marker itself.
+
+Then delete the now-unbacked shadcn colour mappings from `tailwind.config.js` `theme.extend.colors`: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, `chart`. Keep the Maidan tokens (`ground`, `surface`, `ink`, `go`, `urgent`, `pending`, `rule`).
+
+Verify the file shrank to the Maidan-only form and the build still passes:
+
+```bash
+cd Client && npx vite build && grep -c "arena-\|product-card\|cta-primary" src/index.css
+```
+
+Expected: build succeeds, grep prints `0`.
 
 - [ ] **Step 1: Add the no-raw-colour rule**
 
