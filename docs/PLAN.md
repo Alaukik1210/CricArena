@@ -1,6 +1,6 @@
 # CricArena — Build Plan
 
-**Status:** Planning complete through P0a design. Awaiting two open decisions (§9).
+**Status:** P0a implemented and verified (2026-10-09). P0b next — see §11 for what P0a did *not* cover.
 **Last updated:** 2026-10-08
 **Supersedes:** parts of [product-audit-and-roadmap.md](product-audit-and-roadmap.md) — that document's strategy and monetization sections still stand; its frontend/backend gap analysis is superseded by §3 below, and its "Recommended Folder Structure" is superseded by §6.
 
@@ -380,7 +380,61 @@ Both block finalizing the P0a implementation plan.
 
 ## 11. Verification criteria
 
-### P0a — done means all of these pass
+### P0a — COMPLETE (2026-10-09)
+
+All 15 tasks implemented, each reviewed by a separate agent, with a fix round
+where review found issues. Branch `refactor/platform-foundation`.
+
+Verified on 2026-10-09, both packages:
+
+| Check | Result |
+|---|---|
+| Client typecheck | `tsc --noEmit` exit 0 |
+| Client lint | `eslint . --max-warnings 0` exit 0 — **0 errors, 0 warnings** across 89 files (from 102+) |
+| Client tests | 39 passed / 39, 7 files (from 0) |
+| Client build | green; largest chunk `react-vendor` **204 kB**, limit 500 kB |
+| Fonts | 25 `.woff2` emitted into the bundle |
+| No raw hex | clean outside `design/` and the P1-exempt `features/marketing/` |
+| TS migration | no `.js`/`.jsx` anywhere under `src/` |
+| Server lint | `eslint . --max-warnings 0` exit 0 — linted for the first time |
+| Server typecheck | `tsc --noEmit` exit 0 |
+| Server tests | 7 passed / 7, 2 files |
+
+**Three deviations from the original spec, recorded rather than hidden:**
+
+1. **Fonts are `@fontsource` npm packages, not hand-placed `.woff2` in
+   `public/fonts/`.** The spec asked for absolute `/fonts/…` paths plus a
+   build-time existence check. `@fontsource` is strictly better for the same
+   goal: a missing font becomes a module-resolution *build error* rather than a
+   silent fallback, so the existence check is the bundler's job and cannot be
+   forgotten. The "3 × 200 for /fonts/*.woff2" check below no longer applies;
+   the woff2-emitted count replaces it.
+2. **`Web/` is gitignored, not deleted.** The user chose to keep the Next.js
+   experiment on disk as layout reference for the P1 redesign. It is untracked,
+   so the repo carries one frontend; the 391 MB stays local.
+3. **`features/marketing/**` is exempt from the colour rules and still carries
+   the legacy `gold`/`goldx`/`orangex` palette.** This was always the plan
+   (see §4, P1) — removing the exemption is part of P1's definition of done,
+   not P0a's.
+
+**Known gaps carried into P0b/P1 — none of these is "done":**
+
+- **The live Stripe payment path is UNTESTED.** No automated test exercises it
+  and no human has run it since the restyle. It needs a test-mode run with card
+  `4242 4242 4242 4242` end to end, confirming the card digits render dark on
+  the light surface. Treat as a merge blocker.
+- No test covers `Login`, `SignUp` or `ErrorBoundary`, which were restyled in
+  Task 15. Verified by reading the diff and computing contrast, not by running.
+- No browser check of the restyled screens, the skip link under focus, or the
+  marketing backgrounds. All were verified from build output only.
+- `pending` on `surface-sunk` is 3.0008 against a 3.0 AA-large floor — zero
+  margin. Any nudge to either token breaks it silently.
+- `facilities` is `z.unknown()` in Zod but `String[]` in Prisma (pre-existing).
+- `WhyCricArena.tsx` has no importers — dead component.
+- ~7 MB of unreferenced rasters remain in `src/assets/` (absent from `dist/`,
+  so repo weight only).
+
+### Original acceptance matrix — done means all of these pass
 
 | Claim | Check |
 |---|---|
