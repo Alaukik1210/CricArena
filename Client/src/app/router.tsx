@@ -8,13 +8,13 @@ import Layout from "../components/Layout.jsx";
 // Route-level code-splitting
 const App = lazy(() => import("../App"));
 const TicketBookingForm = lazy(() => import("../features/tournaments/TicketBookingForm"));
-const PlayerRegistrationForm = lazy(() => import("../components/PlayerRegistrationForm.jsx"));
+const PlayerRegistrationForm = lazy(() => import("../features/profile/PlayerRegistrationForm"));
 const TournamentHostingForm = lazy(() => import("../features/tournaments/TournamentHostingForm"));
 const CricketScoreboard = lazy(() => import("../components/CricketScoreboard.jsx"));
 const Login = lazy(() => import("../features/auth/Login"));
 const SignUp = lazy(() => import("../features/auth/SignUp"));
 const Tours = lazy(() => import("../features/tournaments/Tours"));
-const PlayerProfile = lazy(() => import("../components/PlayerProfile.jsx"));
+const PlayerProfile = lazy(() => import("../features/profile/PlayerProfile"));
 const GroundsPage = lazy(() => import("../features/grounds/GroundsPage"));
 const About_cric = lazy(() => import("../features/marketing/About_cric"));
 const RegisterTour = lazy(() => import("../features/tournaments/RegisterTour"));
