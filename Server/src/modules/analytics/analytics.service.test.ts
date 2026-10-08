@@ -36,6 +36,23 @@ describe("computeGroundRevenue", () => {
         expect(result.revenue).toBe(2000);
     });
 
+    it("excludes refunded and processing payments, so revenue is net of refunds", () => {
+        const result = computeGroundRevenue({
+            bookingRecords: [],
+            structuredBookings: [
+                { payments: [{ amount: 5000, status: "REFUNDED" }] },
+                { payments: [{ amount: 3000, status: "PROCESSING" }] },
+                { payments: [{ amount: 1500, status: "SUCCEEDED" }] },
+            ],
+        });
+        // Deliberate: a refunded payment contributes nothing, so the owner
+        // dashboard reports revenue net of refunds. If that product decision
+        // ever changes, this test should be the thing that fails.
+        expect(result.revenue).toBe(1500);
+        // All three are still bookings that happened.
+        expect(result.bookings).toBe(3);
+    });
+
     it("sums legacy and structured revenue together", () => {
         const result = computeGroundRevenue({
             bookingRecords: [{ amount: 1000 }],
