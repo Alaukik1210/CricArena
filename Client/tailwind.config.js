@@ -101,12 +101,12 @@ export default {
             // Only the nine actually referenced in src/. Verified with:
             //   grep -rhoE "bg-(hero-pattern|matches[0-9]*|ball|banner[0-9]*|bann)" src/ | sort -u
             backgroundImage: {
-                "hero-pattern": 'url("/src/assets/herobg.png")',
-                matches: 'url("/src/assets/matchbg1.png")',
-                matches1: 'url("/src/assets/matchbg2.jpg")',
-                matches2: 'url("/src/assets/matchbg3.jpg")',
-                matches3: 'url("/src/assets/matchbg4.jpg")',
-                ball: 'url("/src/assets/ballbg1.png")',
+                "hero-pattern": 'url("/src/assets/herobg.webp")',
+                matches: 'url("/src/assets/matchbg1.webp")',
+                matches1: 'url("/src/assets/matchbg2.webp")',
+                matches2: 'url("/src/assets/matchbg3.webp")',
+                matches3: 'url("/src/assets/matchbg4.webp")',
+                ball: 'url("/src/assets/ballbg1.webp")',
                 banner: 'url("/src/assets/banner1.png")',
                 banner3: 'url("/src/assets/banner3.png")',
                 bann: 'url("/src/assets/bann.png")',
