@@ -116,14 +116,14 @@ const Navbar = () => {
                             <PopoverTrigger asChild>
                                 <button type="button" aria-label="Account menu" className="rounded border border-rule-soft p-1">
                                     <Avatar className="h-10 w-10 cursor-pointer">
-                                        <AvatarImage src={user.profile?.profilePhoto || userAvatarFallback} alt="" />
+                                        <AvatarImage src={userAvatarFallback} alt="" />
                                     </Avatar>
                                 </button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80 p-5">
                                 <div className="flex gap-4">
                                     <Avatar className="h-14 w-14">
-                                        <AvatarImage src={user.profile?.profilePhoto || userAvatarFallback} alt="" />
+                                        <AvatarImage src={userAvatarFallback} alt="" />
                                     </Avatar>
                                     <div>
                                         <h3 className="text-lg font-semibold text-ink">{user.fullname}</h3>

@@ -27,6 +27,7 @@ export default {
                 go: "var(--go)",
                 urgent: "var(--urgent)",
                 pending: "var(--pending)",
+                scrim: "var(--scrim)",
                 rule: {
                     DEFAULT: "var(--rule)",
                     soft: "var(--rule-soft)",

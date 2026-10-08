@@ -455,7 +455,7 @@ const CricketScoreboard = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 flex items-center justify-center bg-ink/50"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-scrim"
             >
               <div className="rounded border border-rule bg-surface p-8 text-ink">
                 <h2 className="text-2xl font-bold mb-4">New Batsman</h2>

@@ -21,6 +21,10 @@
     /* line */
     --rule: #2B2520;
     --rule-soft: rgba(43, 37, 32, 0.16);
+    /* Modal scrim. A literal rgba rather than a token with an opacity
+       modifier: Tailwind cannot apply /50 to a var() colour, so bg-ink/50
+       silently emits no rule at all. */
+    --scrim: rgba(43, 37, 32, 0.5);
 
     --radius: 3px;
 }
