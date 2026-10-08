@@ -1287,6 +1287,14 @@ describe("DataTable", () => {
         expect(screen.getByText("Saturday Powerplay")).not.toHaveClass("font-data");
     });
 
+    it("right-aligns a numeric column even when align is omitted", () => {
+        const cols: Column<Room>[] = [
+            { key: "dist", header: "Dist", numeric: true, render: (r) => `${r.distanceKm.toFixed(1)}km` },
+        ];
+        render(<DataTable columns={cols} rows={rows} getRowId={(r) => r.id} />);
+        expect(screen.getByText("7.0km")).toHaveClass("text-right");
+    });
+
     it("right-aligns numeric columns and left-aligns the rest", () => {
         render(<DataTable columns={columns} rows={rows} getRowId={(r) => r.id} />);
         expect(screen.getByText("7.0km")).toHaveClass("text-right");
@@ -1361,10 +1369,15 @@ export function DataTable<T>({
     skeletonRows = 5,
     className,
 }: DataTableProps<T>) {
+    // `numeric` implies right alignment unless the caller says otherwise.
+    // Place-value alignment is the point of this component; a caller who sets
+    // numeric but forgets align should not silently lose it.
+    const alignOf = (col: Column<T>) => col.align ?? (col.numeric ? "right" : "left");
+
     const cellClass = (col: Column<T>) =>
         cn(
             "px-3 py-2.5 text-sm",
-            col.align === "right" && "text-right",
+            alignOf(col) === "right" && "text-right",
             col.numeric && "font-data tabular-nums",
         );
 
@@ -1379,7 +1392,7 @@ export function DataTable<T>({
                                 scope="col"
                                 className={cn(
                                     "px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink-soft",
-                                    col.align === "right" ? "text-right" : "text-left",
+                                    alignOf(col) === "right" ? "text-right" : "text-left",
                                 )}
                             >
                                 {col.header}
@@ -1431,7 +1444,7 @@ export function DataTable<T>({
 cd Client && npx vitest run src/components/ui/data-table.test.tsx
 ```
 
-Expected: `8 passed`.
+Expected: `9 passed`.
 
 - [ ] **Step 5: Typecheck, lint, commit**
 
