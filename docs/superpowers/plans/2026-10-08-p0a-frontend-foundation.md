@@ -2660,6 +2660,43 @@ Every line must report success. Against [docs/PLAN.md §11](../../PLAN.md):
 | Bundle sane | no chunk > 500 kB |
 | CI green | workflow passes |
 
+- [ ] **Step 5b: Add a UTF-8 source guard to CI**
+
+Two separate subagent edits during this plan wrote cp1252 bytes (a `0x97` em dash) into otherwise-UTF-8 source files. Both were caught by review, but only by luck — an invalid byte in a comment breaks no build and no test. Make it mechanical.
+
+Add this step to the `client` job in `.github/workflows/ci.yml`, before `npm run typecheck`:
+
+```yaml
+      - name: Check source files are valid UTF-8
+        working-directory: .
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          bad = []
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in
+                         ('node_modules', '.git', 'dist', '.next', '.superpowers', 'coverage')]
+              for f in files:
+                  if not f.endswith(('.ts', '.tsx', '.js', '.jsx', '.css', '.json',
+                                     '.md', '.yml', '.prisma', '.html')):
+                      continue
+                  p = os.path.join(root, f)
+                  try:
+                      open(p, 'rb').read().decode('utf-8')
+                  except UnicodeDecodeError as e:
+                      bad.append(f"{p}: byte {hex(e.object[e.start])} at offset {e.start}")
+          if bad:
+              print("Invalid UTF-8 in source files:")
+              for b in bad:
+                  print("  " + b)
+              sys.exit(1)
+          print("All source files are valid UTF-8")
+          PY
+```
+
+Confirm it passes locally first by running the same scan; it must report zero files.
+
 - [ ] **Step 6: Re-enable the lint gate in CI**
 
 If Task 1 Step 16 added `|| true` to the lint step, remove it now.
