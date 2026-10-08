@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleUnauthorized } from "./handle-unauthorized";
-import store from "../redux/store";
-import { setUser } from "../redux/userSlice";
+import store, { persistor } from "../redux/store";
+import { clearUser, setUser } from "../redux/userSlice";
 import { queryClient } from "../lib/queryClient";
 
 describe("handleUnauthorized", () => {
     beforeEach(() => {
         queryClient.clear();
+        store.dispatch(clearUser());
     });
 
     it("clears the user from the store", () => {
@@ -37,5 +38,14 @@ describe("handleUnauthorized", () => {
         const redirect = vi.fn();
         handleUnauthorized({ pathname: "/login", search: "" }, redirect);
         expect(redirect).not.toHaveBeenCalled();
+    });
+
+    it("purges the persisted state so a reload cannot rehydrate the logged-out user", () => {
+        const purge = vi.spyOn(persistor, "purge").mockResolvedValue(undefined as never);
+
+        handleUnauthorized({ pathname: "/discover", search: "" }, () => {});
+
+        expect(purge).toHaveBeenCalled();
+        purge.mockRestore();
     });
 });
