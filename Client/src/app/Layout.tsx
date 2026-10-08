@@ -13,9 +13,10 @@ const Layout = () => {
 
     return (
         <div className="flex min-h-screen flex-col">
+            {/* z-index must stay above the navbar's z-50, or the focused link paints behind it. */}
             <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:border focus:border-rule focus:bg-surface focus:px-4 focus:py-2 focus:text-ink"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:border focus:border-rule focus:bg-surface focus:px-4 focus:py-2 focus:text-ink"
             >
                 Skip to main content
             </a>
