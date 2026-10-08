@@ -200,7 +200,7 @@ const PlayerProfile = () => {
     return (
       <div className="mt-28 min-h-screen bg-ground p-6 text-ink">
         <div className="mx-auto max-w-3xl rounded border border-rule bg-surface p-6">
-          <h2 className="mb-4 text-2xl font-bold text-ink">Complete Your Player Profile</h2>
+          <h2 className="mb-4 text-2xl font-bold text-pending">Complete Your Player Profile</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <ProfileFields formData={formData} setFormData={setFormData} />
           </div>
@@ -230,25 +230,25 @@ const PlayerProfile = () => {
             className="h-16 w-16 rounded-full border-2 border-pending object-cover shadow-md"
           />
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-ink">{user?.fullname}</h2>
+            <h2 className="text-2xl font-bold text-pending">{user?.fullname}</h2>
             <p className="text-sm italic text-ink-soft">{profile.bio}</p>
             <p className="text-sm text-ink-soft">
-              <span className="font-semibold text-ink">Location:</span> {user?.city}, {user?.state}
+              <span className="font-semibold text-pending">Location:</span> {user?.city}, {user?.state}
             </p>
             <p className="text-sm text-ink-soft">
-              <span className="font-semibold text-ink">Email:</span> {user?.email}
+              <span className="font-semibold text-pending">Email:</span> {user?.email}
             </p>
             <p className="text-sm text-ink-soft">
-              <span className="font-semibold text-ink">Phone:</span> {user?.phoneNumber}
+              <span className="font-semibold text-pending">Phone:</span> {user?.phoneNumber}
             </p>
             <p className="text-sm text-ink-soft">
-              <span className="font-semibold text-ink">Batting Style:</span> {profile.battingStyle}
+              <span className="font-semibold text-pending">Batting Style:</span> {profile.battingStyle}
             </p>
             <p className="text-sm text-ink-soft">
-              <span className="font-semibold text-ink">Bowling Style:</span> {profile.bowlingStyle}
+              <span className="font-semibold text-pending">Bowling Style:</span> {profile.bowlingStyle}
             </p>
             <p className="text-sm text-ink-soft">
-              <span className="font-semibold text-ink">Skills:</span> {profile.skills}
+              <span className="font-semibold text-pending">Skills:</span> {profile.skills}
             </p>
           </div>
         </div>
