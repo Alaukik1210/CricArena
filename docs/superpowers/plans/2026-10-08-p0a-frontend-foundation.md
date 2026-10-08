@@ -2909,6 +2909,15 @@ Append to `Client/eslint.config.js`, before the closing `]`:
             'Raw colour literal. Use a design token (bg-ground, text-ink, text-go, …). See docs/PLAN.md §5.',
         },
         {
+          // A Literal selector does not see template literals: the class string
+          // in className={`bg-[#fff] ${x}`} is a TemplateElement, so the rule
+          // above would miss it entirely. This codebase uses template literals
+          // for conditional classNames, so that hole is reachable.
+          selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}\\b/]",
+          message:
+            'Raw colour literal in a template literal. Use a design token. See docs/PLAN.md §5.',
+        },
+        {
           selector: "Literal[value=/\\b(bg|text|border)-white\\/[0-9]+/]",
           message:
             'Translucent white overlay is banned. Use bg-surface-sunk or border-rule-soft. See docs/PLAN.md §5.',
@@ -2928,21 +2937,91 @@ Append to `Client/eslint.config.js`, before the closing `]`:
   },
 ```
 
+- [ ] **Step 1b: Restyle the three dark-theme holdouts**
+
+**This step is the real work of Task 15, and the original plan mis-sized it.**
+`npx eslint .` is already at zero *today*, so Step 2 below is not a cleanup of
+"leftover unused imports" - it is whatever the new rules in Step 1 newly break.
+I measured it. Three files are still on the pre-Maidan dark/gold theme:
+
+| File | Raw hex | `white/N` | Banned radius | Other legacy colours |
+|---|---|---|---|---|
+| `src/features/auth/SignUp.tsx` | 12 | 1 | 1 | 16 |
+| `src/features/auth/Login.tsx` | 7 | 0 | 0 | 11 |
+| `src/components/ErrorBoundary.tsx` | 3 | 2 | 1 | 2 |
+
+These were converted to TypeScript in Tasks 9-13 but never visually migrated:
+they still render `bg-black` pages with `bg-[#3d3d3d]` cards, `#FFD070` gold
+headings, `text-white` labels and `text-red-400` errors, while every other
+screen is Maidan. **None of them is covered by the `features/marketing/`
+exemption**, and they should not be - Login and SignUp are core product screens
+that every user hits on every session, and a gold-on-black auth form in front of
+a light outdoor-readable app is exactly the inconsistency the "one token system"
+claim in [docs/PLAN.md](../../PLAN.md) §11 says is fixed.
+
+Restyle all three to tokens. The mapping is mechanical:
+
+| Legacy | Maidan |
+|---|---|
+| `bg-black` (page) | `bg-ground` |
+| `bg-[#3d3d3d]` / `bg-[#1d1d1d]` (card) | `bg-surface` + `border border-rule-soft` |
+| `bg-[#2d2d2d]` (input) | `bg-surface` + `border border-rule-soft` |
+| `text-[#FFD070]` (heading) | `text-ink` |
+| `bg-[#FFD070] text-black` (button) | use the existing `Button` primitive |
+| `text-white` (label) | `text-ink` |
+| `text-white/70` (body) | `text-ink-soft` |
+| `text-red-400` (error) | `text-urgent` |
+| `rounded-lg` / `rounded-md` / `rounded-2xl` | `rounded` (= `--radius`, 3px) |
+| `placeholder` colour | `placeholder:text-ink-faint` |
+
+Two cautions:
+
+- **Check the contrast of what you produce.** `text-ink` on `bg-surface` is
+  12.6:1 and fine; `text-ink-faint` is placeholders only. Do not invent a
+  colour to fill a gap - if no token fits, stop and report.
+- **Do not restructure these components.** Change `className` strings and swap
+  in the existing `Button` primitive where a button is hand-rolled. Leave the
+  form logic, validation, and `react-hook-form` wiring exactly as they are.
+  This is a restyle, not a rewrite.
+
+Verify the screens still render: `npx vitest run` must stay green, and
+`npx vite build` must pass.
+
 - [ ] **Step 2: Run lint and fix every remaining error**
 
 ```bash
 cd Client && npx eslint . 2>&1 | tail -40
 ```
 
-Work the list to zero. Expected categories: leftover unused imports, any `rounded-full` on avatars (allowed only inside `src/components/ui/avatar.tsx` — add a targeted `// eslint-disable-next-line no-restricted-syntax` with a comment explaining that a circular avatar is intentional).
+Work the list to zero. After Step 1b the remaining hits should be only the
+legitimate circles, which need targeted exemptions rather than restyling:
 
-- [ ] **Step 3: Confirm zero**
+- `src/components/ui/avatar.tsx` (3 sites) - a circular avatar is intentional.
+- `src/features/profile/PlayerProfile.tsx:148,230` - avatar and avatar
+  placeholder.
+- `src/features/tournaments/Tours.tsx:154,162` - `animate-pulse` skeleton pills.
+
+For each, add `// eslint-disable-next-line no-restricted-syntax` with a short
+comment saying why the circle is deliberate. Do not widen the rule's `ignores`
+to cover whole files - a per-line exemption keeps the next `rounded-full` in
+those same files caught.
+
+- [ ] **Step 3: Confirm zero errors AND zero warnings**
+
+`eslint` exits 0 when only warnings remain, so a bare `npx eslint .` does not
+prove what this step claims. The config sets
+`react-refresh/only-export-components` to `warn`, so warnings are reachable.
+Use the flag:
 
 ```bash
-cd Client && npx eslint . && echo "LINT CLEAN"
+cd Client && npx eslint . --max-warnings 0 && echo "LINT CLEAN"
 ```
 
 Expected: `LINT CLEAN`.
+
+Then make the gate permanent rather than a thing someone remembers to type -
+change the `lint` script in `Client/package.json` from `eslint .` to
+`eslint . --max-warnings 0`, so CI and local runs enforce the same bar.
 
 - [ ] **Step 4: Confirm the class inventory is empty**
 
@@ -2952,6 +3031,81 @@ cd Client && grep -rnoE "product-(page|shell|panel|hero|card|grid[0-9-]*)|sectio
 
 Expected: `NO DEAD CLASSES`.
 
+- [ ] **Step 4b: Give the Server a lint config at all**
+
+The verification matrix below claims "Lint clean" as a P0a exit criterion, but
+it only ever checked `Client/`. **`Server/` has no ESLint config and no `lint`
+script** - 45 TypeScript files, ~2,575 lines, completely unlinted. The CI
+`server` job runs `typecheck` and `test:run` and nothing else. Shipping P0a
+while asserting "lint clean" would make that row of the matrix false.
+
+This is the same omission the plan already corrected once on the client side:
+Task 1 found `.ts`/`.tsx` entirely unlinted there.
+
+Create `Server/eslint.config.js`:
+
+```js
+import js from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+
+export default [
+  { ignores: ['dist', 'coverage', 'node_modules', 'prisma/migrations'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // Express error middleware must keep its 4-arity signature even when
+      // `next` is unused, or Express stops treating it as an error handler.
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    files: ['**/*.test.ts', 'src/test/**'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+]
+```
+
+Install the dev dependencies and add the script:
+
+```bash
+cd Server && npm i -D eslint @eslint/js typescript-eslint globals
+npm pkg set scripts.lint="eslint . --max-warnings 0"
+```
+
+Then run it and work the list to zero:
+
+```bash
+cd Server && npx eslint . 2>&1 | tail -40
+```
+
+**Expect real findings here - this code has never been linted.** Two rules of
+engagement:
+
+- Fix lint errors by correcting the code, not by widening `ignores` or
+  sprinkling `eslint-disable`. A disable is acceptable only with a comment
+  saying why, as with the Express 4-arity case noted above.
+- **Do not change runtime behaviour to satisfy a linter.** If a rule demands a
+  change you are not confident is behaviour-preserving - particularly anywhere
+  in `modules/payments/` or `modules/analytics/`, which handle money - set that
+  one rule to `'warn'` with a comment, report it, and move on. A silently
+  broken payment path is far worse than a lint warning.
+
+Finally add the step to the `server` job in `.github/workflows/ci.yml`, after
+`npm run typecheck`:
+
+```yaml
+      - run: npm run lint
+```
+
 - [ ] **Step 5: Run the full P0a verification matrix**
 
 ```bash
@@ -2960,10 +3114,11 @@ echo "— fonts —"      && npx vite build 2>&1 | grep -c woff2
 echo "— no hex —"     && (grep -rEl "#[0-9a-fA-F]{6}" src/features src/components 2>/dev/null | grep -v "src/features/marketing/" || echo clean)
 echo "— no jsx —"     && (find src -name "*.jsx" -o -name "*.js" | grep -v node_modules || echo clean)
 echo "— typecheck —"  && npx tsc --noEmit && echo ok
-echo "— lint —"       && npx eslint . && echo ok
+echo "— lint —"       && npx eslint . --max-warnings 0 && echo ok
 echo "— tests —"      && npx vitest run
 echo "— build —"      && npx vite build 2>&1 | tail -3
 cd ../Server
+echo "— server lint —" && npx eslint . --max-warnings 0 && echo ok
 echo "— server tc —"  && npx tsc --noEmit && echo ok
 echo "— server test —" && npx vitest run
 ```
@@ -2976,7 +3131,7 @@ Every line must report success. Against [docs/PLAN.md §11](../../PLAN.md):
 | One token system | no hex outside `design/` (plus the `features/marketing/` P1 exemption) |
 | `Web/` gone | already untracked via `.gitignore` |
 | TS migration done | no `.jsx`/`.js` under `src/` |
-| Lint clean | `eslint .` exit 0 |
+| Lint clean | `eslint . --max-warnings 0` exit 0 in **both** `Client/` and `Server/` |
 | Revenue correct | `analytics.service.test.ts` passes |
 | A11y floor | `Layout.test.tsx` passes; focus-visible + reduced-motion in `index.css` |
 | Bundle sane | no chunk > 500 kB |
@@ -3023,23 +3178,58 @@ Confirm it passes locally first by running the same scan; it must report zero fi
 
 If Task 1 Step 16 added `|| true` to the lint step, remove it now.
 
+- [ ] **Step 6b: Write down the z-index layering**
+
+Two separate z-index collisions turned up in this plan, both with the same
+cause and both invisible to every automated check:
+
+- Task 13: the modal overlay and the Navbar are both `z-50`, so the overlay
+  wins only by DOM order.
+- Task 14: the focus-visible skip link was given `z-50` and was painted
+  *behind* the Navbar's opaque bar, in the exact same screen corner. The three
+  tests passed throughout, because they assert role, name and href - not paint
+  order.
+
+Nothing in the stack catches this: Tailwind emits the class, TypeScript sees a
+string, and jsdom does no layout. The only defence is that the values are
+written down somewhere a person will look.
+
+Add this comment block to `Client/src/design/tokens.css`, below the colour
+tokens. Do **not** convert the existing `z-50` usages - that is a refactor this
+task has no mandate for, and the skip link is already correct at `z-[60]`.
+
+```css
+/* Stacking order. These are plain numbers, not tokens: Tailwind's z-* scale
+   does not read CSS variables. Written down because equal z-index values fall
+   back to DOM order, which has silently broken two things in this codebase -
+   a modal overlay and the skip link - with no build, type or test error.
+     60  skip link        - must clear the navbar; it shares the top-left corner
+     50  navbar, modals   - fixed chrome
+      0  page content
+   Anything new that overlays the navbar belongs above 50; say so here. */
+```
+
 - [ ] **Step 7: Tick off P0a in the plan document**
 
 In `docs/PLAN.md` §4, mark the P0a bullets complete and note the completion date.
 
-- [ ] **Step 8: Commit and push**
+- [ ] **Step 8: Commit (do not push)**
+
+Commit only. A whole-branch review runs after this task, and pushing first
+would publish work that review has not seen.
 
 ```bash
 git add -A
-git commit -m "chore(lint): zero errors; enforce design tokens via lint
+git commit -m "chore(lint): zero errors and warnings; enforce design tokens via lint
 
 Adds no-restricted-syntax rules banning raw hex, translucent white
-overlays, and radius above 3px outside src/design/ — the mechanism that
-keeps the single token system true over time.
+overlays, and radius above 3px outside src/design/ - the mechanism that
+keeps the single token system true over time. Restyles the three
+dark-theme holdouts (Login, SignUp, ErrorBoundary) onto tokens, and gives
+the Server an ESLint config for the first time.
 
 P0a complete: fonts load, one token system, full TypeScript, zero lint
 errors, a11y floor, test + CI floor, owner revenue correct."
-git push
 ```
 
 ---
