@@ -15,11 +15,18 @@ export interface ApiErrorShape {
 export class ApiError extends Error {
     public readonly status: number;
     public readonly details?: ApiErrorShape["details"];
+    /**
+     * Axios error code, e.g. "ECONNABORTED" for a timeout or "ERR_NETWORK".
+     * Carried through so callers can branch on the failure kind without
+     * string-matching the human-readable message.
+     */
+    public readonly code?: string;
 
-    constructor(message: string, status: number, details?: ApiErrorShape["details"]) {
+    constructor(message: string, status: number, details?: ApiErrorShape["details"], code?: string) {
         super(message);
         this.status = status;
         this.details = details;
+        this.code = code;
     }
 }
 
@@ -44,7 +51,7 @@ const createClient = (): AxiosInstance => {
                 emitUnauthorized();
             }
 
-            return Promise.reject(new ApiError(message, status, data?.details));
+            return Promise.reject(new ApiError(message, status, data?.details, error.code));
         },
     );
 

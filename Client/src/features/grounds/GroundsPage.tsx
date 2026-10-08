@@ -185,10 +185,10 @@ export default function GroundsPage() {
       console.error("Error creating payment session:", error);
 
       // The shared api client wraps failures in ApiError, which carries the
-      // HTTP status (0 when no response arrived) and the server message.
+      // HTTP status, the server message and the axios error code.
       const apiError = error instanceof ApiError ? error : null;
 
-      if (apiError?.status === 0 && /timeout/i.test(apiError.message)) {
+      if (apiError?.code === "ECONNABORTED") {
         setStatus("The payment request timed out. Please try again.");
       } else if (apiError?.status === 401) {
         setStatus("Your session expired. Please login and try again.");
