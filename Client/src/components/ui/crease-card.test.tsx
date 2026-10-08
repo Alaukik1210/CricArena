@@ -49,4 +49,20 @@ describe("CreaseCard", () => {
         render(<CreaseCard title="Partial" meta="m" current={7} required={11} />);
         expect(screen.getByRole("group")).toHaveAttribute("data-complete", "false");
     });
+
+    it("inks the crease in exact proportion to the squad", () => {
+        render(<CreaseCard title="Room" meta="m" current={7} required={11} />);
+        // 7/11 = 63.64% of the perimeter, normalised by pathLength=100
+        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "63.64 100");
+    });
+
+    it("closes the crease for a full squad", () => {
+        render(<CreaseCard title="Full" meta="m" current={11} required={11} />);
+        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "100.00 100");
+    });
+
+    it("leaves the crease unmarked for an empty squad", () => {
+        render(<CreaseCard title="Empty" meta="m" current={0} required={11} />);
+        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "0.00 100");
+    });
 });
