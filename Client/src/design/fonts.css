@@ -1,0 +1,15 @@
+/* Self-hosted via @fontsource. Vite resolves these at build time —
+   a missing package is a build error, never a silent system-sans fallback.
+   This is the fix for the `../fonts/` bug (docs/PLAN.md §3, gap #1). */
+
+@import "@fontsource/anton/400.css";
+@import "@fontsource-variable/inter-tight/index.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+:root {
+    --font-display: "Anton", "Arial Narrow", sans-serif;
+    --font-body: "Inter Tight Variable", "Inter Tight", system-ui, sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, monospace;
+}
