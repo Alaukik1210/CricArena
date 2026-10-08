@@ -1,24 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-import axios from "axios";
+import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaRupeeSign } from "react-icons/fa";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { PROFILE_API_END_POINT, TEAM_API_END_POINT, TOUR_API_END_POINT } from "@/utils/constants";
+import { api } from "@/lib/api";
+import { useAppSelector } from "@/redux/store";
+import type { TournamentDetail } from "./tournaments.types";
+
+interface UserTeam {
+  id: string;
+  name: string;
+}
 
 export default function RegisterTour() {
   const [selectedTeam, setSelectedTeam] = useState("");
-  const [tournamentDetails, setTournamentDetails] = useState(null);
+  const [tournamentDetails, setTournamentDetails] = useState<TournamentDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [teams, setTeams] = useState([]);
+  const [teams, setTeams] = useState<UserTeam[]>([]);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
   const [creatingTeam, setCreatingTeam] = useState(false);
   const { id } = useParams();
-const { user } = useSelector((store) => store.user);
-const userId = user?.id; // ✅ safe access
+  const user = useAppSelector((store) => store.user.user);
+  const userId = user?.id;
 
   const fetchTeamById = async () => {
     if (!userId) {
@@ -26,18 +31,17 @@ const userId = user?.id; // ✅ safe access
       return;
     }
     try {
-      const res = await axios.get(`${PROFILE_API_END_POINT}/${userId}/teams`);
+      const res = await api.get<{ teams?: UserTeam[] }>(`/user/profile/${userId}/teams`);
       setTeams(res.data.teams || []);
     } catch (error) {
       console.log(error);
     }
   };
 
-
   useEffect(() => {
     const fetchTournamentDetails = async () => {
       try {
-        const response = await axios.get(`${TOUR_API_END_POINT}/${id}`);
+        const response = await api.get<{ tournament: TournamentDetail }>(`/owner/tours/${id}`);
         setTournamentDetails(response.data.tournament);
         fetchTeamById();
       } catch (error) {
@@ -48,35 +52,36 @@ const userId = user?.id; // ✅ safe access
     };
 
     fetchTournamentDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch only when the tournament id changes, as before
   }, [id]);
 
   const onSubmitHandler = async () => {
-    if (!selectedTeam) return;
-  
+    if (!selectedTeam || !tournamentDetails) return;
+
     try {
-      // Find the selected team's ID
+      // Find the selected team by name
       const selectedTeamObj = teams.find((team) => team.name === selectedTeam);
       if (!selectedTeamObj) {
         alert("Selected team not found.");
         return;
       }
-  
+
       const teamId = selectedTeamObj.id; // Get the team ID
-  
+
       // Send the POST request with tournamentId and teamId
-      const response = await axios.post(`${TOUR_API_END_POINT}/register`, {
+      await api.post("/owner/tours/register", {
         tournamentId: id,
         teamId: teamId,
       });
-  
+
       alert("Team registered successfully!");
-  
+
       // Update joined teams locally
       const updatedTeams = tournamentDetails.teams.map((team) =>
         team.id === teamId ? { ...team, joined: true } : team
       );
       setTournamentDetails({ ...tournamentDetails, teams: updatedTeams });
-  
+
       setSelectedTeam("");
     } catch (error) {
       console.error("Error registering team:", error);
@@ -92,7 +97,7 @@ const userId = user?.id; // ✅ safe access
 
     try {
       setCreatingTeam(true);
-      await axios.post(`${TEAM_API_END_POINT}/create`, {
+      await api.post("/user/team/create", {
         name: newTeamName,
         description: newTeamDescription,
         memberIds: [userId],
@@ -110,82 +115,77 @@ const userId = user?.id; // ✅ safe access
   };
 
   if (loading) {
-    return <div className="text-white text-center h-40 w-80 mt-80 items-center ml-96 pl-96">Loading tournament details...</div>;
+    return <div className="ml-96 mt-80 h-40 w-80 items-center pl-96 text-center text-ink">Loading tournament details...</div>;
   }
 
   if (!tournamentDetails) {
-    return <p className="text-white text-center mt-20">Tournament not found.</p>;
+    return <p className="mt-20 text-center text-ink">Tournament not found.</p>;
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 mt-40 py-8 text-white">
-      <Card className="bg-goldx border border-gray-700">
+    <div className="mx-auto mt-40 max-w-5xl px-4 py-8 text-ink">
+      <Card>
         <CardHeader>
-          <h2 className="text-3xl font-bold text-[#FFD070]">
+          <h2 className="text-3xl font-bold text-pending">
             {tournamentDetails.title}
           </h2>
-          <p className="text-sm text-gray-400">{tournamentDetails.description}</p>
+          <p className="text-sm text-ink-soft">{tournamentDetails.description}</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaMapMarkerAlt className="text-[#FFD070]" />
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaMapMarkerAlt className="text-pending" />
               <span>{tournamentDetails.venue}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaCalendarAlt className="text-[#FFD070]" />
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaCalendarAlt className="text-pending" />
               <span>
                 {tournamentDetails.tourStartsDate} - {tournamentDetails.tourEndDate}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaUsers className="text-[#FFD070]" />
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaUsers className="text-pending" />
               <span>{tournamentDetails.spots} spots</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaRupeeSign className="text-[#FFD070]" />
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaRupeeSign className="text-pending" />
               <span>₹{tournamentDetails.entryFee}</span>
             </div>
           </div>
 
-          <p className="text-gray-300 mb-6">{tournamentDetails.description}</p>
+          <p className="mb-6 text-ink-soft">{tournamentDetails.description}</p>
 
           {/* Register Team Section */}
           <div className="mb-8">
-            <h3 className="text-2xl font-semibold text-[#FFD070] mb-4">
+            <h3 className="mb-4 text-2xl font-semibold text-pending">
               Register Your Team
             </h3>
             {teams.length === 0 && (
-              <div className="mb-4 p-4 rounded border border-yellow-400/40 bg-black/30">
-                <p className="text-sm text-gray-300 mb-3">No team found. Create your first team to register in this tournament.</p>
-                <div className="flex flex-col sm:flex-row gap-2 mb-2">
-                  <input
+              <div className="mb-4 rounded border border-pending bg-surface p-4">
+                <p className="mb-3 text-sm text-ink-soft">No team found. Create your first team to register in this tournament.</p>
+                <div className="mb-2 flex flex-col gap-2 sm:flex-row">
+                  <Input
                     value={newTeamName}
                     onChange={(e) => setNewTeamName(e.target.value)}
                     placeholder="Team name"
-                    className="bg-black text-white border border-gray-600 p-2 rounded-md"
                   />
-                  <input
+                  <Input
                     value={newTeamDescription}
                     onChange={(e) => setNewTeamDescription(e.target.value)}
                     placeholder="Team description"
-                    className="bg-black text-white border border-gray-600 p-2 rounded-md flex-1"
+                    className="flex-1"
                   />
                 </div>
-                <Button
-                  onClick={createTeamHandler}
-                  disabled={creatingTeam}
-                  className="bg-[#FFD070] text-black hover:bg-[#FFC857]"
-                >
+                <Button onClick={createTeamHandler} disabled={creatingTeam}>
                   {creatingTeam ? "Creating Team..." : "Create Team"}
                 </Button>
               </div>
             )}
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <select
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className="bg-black text-white border border-gray-600 p-2 rounded-md"
+                className="h-10 w-full rounded border border-rule bg-surface px-3 text-sm text-ink"
               >
                 <option value="">Select a team</option>
                 {teams.map((team, index) => (
@@ -194,22 +194,14 @@ const userId = user?.id; // ✅ safe access
                   </option>
                 ))}
               </select>
-              <Button
-                onClick={onSubmitHandler}
-                disabled={!selectedTeam}
-                className={`${
-                  selectedTeam
-                    ? "bg-[#FFD070] text-black hover:bg-[#FFC857]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                }`}
-              >
+              <Button onClick={onSubmitHandler} disabled={!selectedTeam}>
                 Register
               </Button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-gray-300 mb-6">
-            <FaCalendarAlt className="text-[#FFD070]" />
+          <div className="mb-6 flex items-center gap-2 text-ink-soft">
+            <FaCalendarAlt className="text-pending" />
             <span>
               Last registration date is {tournamentDetails.lastRegistrationDate}
             </span>
@@ -217,21 +209,21 @@ const userId = user?.id; // ✅ safe access
 
           {/* Teams Joined Section */}
           <div>
-            <h3 className="text-2xl font-semibold text-[#FFD070] mb-4">
+            <h3 className="mb-4 text-2xl font-semibold text-pending">
               Teams Joined
             </h3>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {tournamentDetails.teams.map((team, idx) => (
                 <li
                   key={idx}
-                  className={`rounded-lg p-4 border ${
-                    team.joined ? "border-green-500" : "border-yellow-400"
-                  } bg-[#1F2937]`}
+                  className={`rounded border bg-surface p-4 ${
+                    team.joined ? "border-go" : "border-pending"
+                  }`}
                 >
-                  <p className="font-medium text-white">{team.name}</p>
+                  <p className="font-medium text-ink">{team.name}</p>
                   <p
                     className={`text-sm ${
-                      team.joined ? "text-green-400" : "text-yellow-400"
+                      team.joined ? "text-go" : "text-pending"
                     }`}
                   >
                     {team.joined ? "Registered" : "Pending"}

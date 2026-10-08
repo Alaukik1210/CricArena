@@ -2,10 +2,21 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaRupeeSign } from "react-icons/fa";
-import { TOUR_API_END_POINT } from "@/utils/constants";
+import { api } from "@/lib/api";
+
+interface TournamentInfo {
+  title: string;
+  subtitle?: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  spots?: string | number;
+  entryFee?: string | number;
+  description?: string;
+}
 
 // Hardcoded fallback tournament data
-const fallbackTournament = {
+const fallbackTournament: TournamentInfo = {
   title: "CricArena Summer Cup",
   subtitle: "Open for all age groups",
   location: "Sector 21, New Delhi",
@@ -17,25 +28,20 @@ const fallbackTournament = {
     "Join the most exciting summer cricket tournament in the city! Compete with the best teams and win amazing prizes. All matches will be played under floodlights with professional umpires.",
 };
 
-
 export default function TournamentDetails() {
   const { id } = useParams(); // Get tournament ID from URL
-  const [tournament, setTournament] = useState(null);
+  const [tournament, setTournament] = useState<TournamentInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch tournament details from the backend
     const fetchTournament = async () => {
-       try {
-        const response = await fetch(`${TOUR_API_END_POINT}/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          // If data is valid and has a title, use it; else fallback
-          if (data && data.title) {
-            setTournament(data);
-          } else {
-            setTournament(fallbackTournament);
-          }
+      try {
+        const response = await api.get<TournamentInfo | null>(`/owner/tours/${id}`);
+        const data = response.data;
+        // If data is valid and has a title, use it; else fallback
+        if (data && data.title) {
+          setTournament(data);
         } else {
           setTournament(fallbackTournament);
         }
@@ -51,42 +57,42 @@ export default function TournamentDetails() {
   }, [id]);
 
   if (loading) {
-    return <p className="text-white text-center mt-20">Loading...</p>;
+    return <p className="mt-20 text-center text-ink">Loading...</p>;
   }
 
   if (!tournament) {
-    return <p className="text-white text-center mt-20">Tournament not found.</p>;
+    return <p className="mt-20 text-center text-ink">Tournament not found.</p>;
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 mt-28 py-8 text-white">
-      <Card className="bg-[#1E293B] border border-gray-700">
+    <div className="mx-auto mt-28 max-w-5xl px-4 py-8 text-ink">
+      <Card>
         <CardHeader>
-          <h2 className="text-3xl font-bold text-[#FFD070]">{tournament.title}</h2>
-          <p className="text-sm text-gray-400">{tournament.subtitle}</p>
+          <h2 className="text-3xl font-bold text-pending">{tournament.title}</h2>
+          <p className="text-sm text-ink-soft">{tournament.subtitle}</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaMapMarkerAlt className="text-[#FFD070]" />
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaMapMarkerAlt className="text-pending" />
               <span>{tournament.location}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaCalendarAlt className="text-[#FFD070]" />
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaCalendarAlt className="text-pending" />
               <span>
                 {tournament.startDate} - {tournament.endDate}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaUsers className="text-[#FFD070]" />
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaUsers className="text-pending" />
               <span>{tournament.spots}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <FaRupeeSign className="text-[#FFD070]" />
+            <div className="flex items-center gap-2 text-ink-soft">
+              <FaRupeeSign className="text-pending" />
               <span>{tournament.entryFee}</span>
             </div>
           </div>
-          <p className="text-gray-300">{tournament.description}</p>
+          <p className="text-ink-soft">{tournament.description}</p>
         </CardContent>
       </Card>
     </div>
