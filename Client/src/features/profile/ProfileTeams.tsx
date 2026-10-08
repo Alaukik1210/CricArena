@@ -21,7 +21,7 @@ export function ProfileTeams({ teams }: ProfileTeamsProps) {
           </Card>
         ))
       ) : (
-        <p className="text-ink-soft">No teams found.</p>
+        <p className="text-ink">No teams found.</p>
       )}
     </div>
   );

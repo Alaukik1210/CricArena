@@ -115,7 +115,7 @@ export default function Tours() {
       <div className="mb-12 flex flex-col items-center justify-between gap-4 md:flex-row">
         <div>
           <h2 className="font-display text-3xl text-ink md:text-5xl">Join The Fun</h2>
-          <p className="mt-2 text-sm text-ink-soft md:text-base">
+          <p className="mt-2 text-sm text-ink md:text-base">
             Upcoming cricket events near you
           </p>
         </div>
