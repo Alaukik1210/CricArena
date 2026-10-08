@@ -2264,6 +2264,8 @@ git mv components/Layout.jsx app/Layout.tsx
 git mv components/Navbar.jsx components/Navbar.tsx
 ```
 
+When converting `Layout.tsx`, **keep its `useLocation` + `window.scrollTo(0, 0)` effect**. Task 14 rewrites this file to add the skip link and `<main>` landmark and keeps the effect too; losing it in either task is a silent navigation regression. Drop only the `bg-black` from its wrapper — the page background comes from `--ground` now.
+
 Fix the `useEffect` missing-dependency warning in `CricketScoreboard` by wrapping `saveToLocalStorage` in `useCallback`.
 
 - [ ] **Step 3a: Delete the dead shadcn toast system**
@@ -2399,13 +2401,21 @@ Expected: FAIL — no skip link exists.
 In `Client/src/app/Layout.tsx`:
 
 ```tsx
-import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../features/marketing/Footer";
 
 export default function Layout() {
+    const location = useLocation();
+
+    // Preserved from the original Layout: reset scroll position on navigation.
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [location]);
+
     return (
-        <>
+        <div className="flex min-h-screen flex-col">
             <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:border focus:border-rule focus:bg-surface focus:px-4 focus:py-2 focus:text-ink"
@@ -2413,14 +2423,19 @@ export default function Layout() {
                 Skip to main content
             </a>
             <Navbar />
-            <main id="main-content">
+            <main id="main-content" className="flex-1">
                 <Outlet />
             </main>
             <Footer />
-        </>
+        </div>
     );
 }
 ```
+
+Two things carried over deliberately from the original `Layout.jsx`:
+
+- **The scroll-to-top effect.** The original reset `window.scrollTo(0, 0)` on every location change. Dropping it is a silent UX regression — navigating from a scrolled list to a detail page would land mid-page.
+- **The flex column wrapper.** The original used `bg-black h-fit flex flex-col justify-between` to keep the footer down the page. The `bg-black` goes (the page background now comes from `--ground`), but the column layout is replaced with `flex min-h-screen flex-col` plus `flex-1` on `<main>`, which pins the footer to the bottom on short pages instead of leaving it floating mid-viewport.
 
 - [ ] **Step 4: Run the test — expect PASS**
 
