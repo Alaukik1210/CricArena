@@ -1411,7 +1411,6 @@ import { computeGroundRevenue } from "./analytics.service";
 describe("computeGroundRevenue", () => {
     it("counts legacy GroundBooking revenue", () => {
         const result = computeGroundRevenue({
-            bookings: 0,
             bookingRecords: [{ amount: 5000 }, { amount: 3000 }],
             structuredBookings: [],
         });
@@ -1422,7 +1421,6 @@ describe("computeGroundRevenue", () => {
     // This is the regression this task exists to fix.
     it("counts structured Booking revenue from SUCCEEDED payments", () => {
         const result = computeGroundRevenue({
-            bookings: 0,
             bookingRecords: [],
             structuredBookings: [
                 { payments: [{ amount: 4000, status: "SUCCEEDED" }] },
@@ -1435,7 +1433,6 @@ describe("computeGroundRevenue", () => {
 
     it("ignores failed and pending payments", () => {
         const result = computeGroundRevenue({
-            bookings: 0,
             bookingRecords: [],
             structuredBookings: [
                 { payments: [{ amount: 4000, status: "FAILED" }] },
@@ -1448,7 +1445,6 @@ describe("computeGroundRevenue", () => {
 
     it("sums legacy and structured revenue together", () => {
         const result = computeGroundRevenue({
-            bookings: 0,
             bookingRecords: [{ amount: 1000 }],
             structuredBookings: [{ payments: [{ amount: 2000, status: "SUCCEEDED" }] }],
         });
@@ -1457,7 +1453,7 @@ describe("computeGroundRevenue", () => {
     });
 
     it("returns zeroes for a ground with no bookings", () => {
-        const result = computeGroundRevenue({ bookings: 0, bookingRecords: [], structuredBookings: [] });
+        const result = computeGroundRevenue({ bookingRecords: [], structuredBookings: [] });
         expect(result).toEqual({ bookings: 0, revenue: 0 });
     });
 });
@@ -1477,7 +1473,6 @@ In `Server/src/modules/analytics/analytics.service.ts`, add above the class:
 
 ```ts
 type RevenueInput = {
-    bookings: number;
     bookingRecords: { amount: number }[];
     structuredBookings: { payments: { amount: number; status: string }[] }[];
 };
@@ -1488,6 +1483,12 @@ type RevenueInput = {
  * Previously revenue summed only `bookingRecords` (legacy GroundBooking)
  * while the booking *count* included structured bookings — so every
  * structured Booking contributed zero revenue. See docs/PLAN.md §3 gap #13.
+ *
+ * This also stops counting the denormalized `Ground.bookings` column. That
+ * column is only ever written at ground creation from `data.bookings ?? 0`
+ * and is never incremented when a booking is made, so adding it to the count
+ * mixed an owner-supplied arbitrary number into a real total. Counts are now
+ * derived purely from booking rows.
  */
 export function computeGroundRevenue(ground: RevenueInput): { bookings: number; revenue: number } {
     const legacyRevenue = ground.bookingRecords.reduce((sum, b) => sum + b.amount, 0);
@@ -1707,14 +1708,15 @@ import { Toaster } from "sonner";
 import store, { persistor } from "../redux/store";
 import { queryClient } from "../lib/queryClient";
 import { onUnauthorized } from "../lib/auth-events";
-import { setUser } from "../redux/userSlice";
+import { clearUser } from "../redux/userSlice";
 
 function UnauthorizedListener() {
     useEffect(
         () =>
             onUnauthorized(() => {
-                store.dispatch(setUser(null));
+                store.dispatch(clearUser());
                 queryClient.clear();
+                void persistor.purge();
                 const { pathname, search } = window.location;
                 if (pathname !== "/login") {
                     const next = encodeURIComponent(pathname + search);
@@ -1741,7 +1743,7 @@ export function Providers({ children }: { children: ReactNode }) {
 }
 ```
 
-> If `setUser` is not the actual exported action name in `Client/src/redux/userSlice.ts`, open that file and use the real one. Do not invent an action.
+> Verified present: `userSlice.ts` exports both `setUser` and `clearUser`; `store.ts` exports `persistor`. `clearUser()` is the correct logout action — do not use `setUser(null)`, which would fight the slice's typing. `persistor.purge()` clears the persisted copy so a reload cannot resurrect the logged-out user.
 
 - [ ] **Step 7: Move the router into `Client/src/app/router.tsx`**
 
