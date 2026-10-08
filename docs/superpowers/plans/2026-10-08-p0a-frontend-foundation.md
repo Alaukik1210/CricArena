@@ -1273,14 +1273,24 @@ describe("DataTable", () => {
         expect(screen.getAllByRole("row")).toHaveLength(3); // header + 2
     });
 
-    it("formats numeric cells with the data font", () => {
+    it("formats numeric cells with the data font and tabular figures", () => {
         render(<DataTable columns={columns} rows={rows} getRowId={(r) => r.id} />);
-        expect(screen.getByText("7.0km")).toHaveClass("font-data");
+        const cell = screen.getByText("7.0km");
+        expect(cell).toHaveClass("font-data");
+        expect(cell).toHaveClass("tabular-nums");
     });
 
-    it("right-aligns numeric columns", () => {
+    it("leaves non-numeric cells in the body font", () => {
+        render(<DataTable columns={columns} rows={rows} getRowId={(r) => r.id} />);
+        // Guards against slapping font-data on every cell, which would make
+        // the numeric/non-numeric distinction meaningless.
+        expect(screen.getByText("Saturday Powerplay")).not.toHaveClass("font-data");
+    });
+
+    it("right-aligns numeric columns and left-aligns the rest", () => {
         render(<DataTable columns={columns} rows={rows} getRowId={(r) => r.id} />);
         expect(screen.getByText("7.0km")).toHaveClass("text-right");
+        expect(screen.getByText("Saturday Powerplay")).not.toHaveClass("text-right");
     });
 
     it("shows the empty message when there are no rows", () => {
@@ -1400,10 +1410,10 @@ export function DataTable<T>({
                           : rows.map((row) => (
                                 <tr key={getRowId(row)} className="border-b border-rule-soft last:border-b-0">
                                     {columns.map((col) => (
+                                        // cellClass already carries font-data / text-right;
+                                        // an inner <span> repeating them would be duplication.
                                         <td key={col.key} className={cellClass(col)}>
-                                            <span className={cn(col.numeric && "font-data", col.align === "right" && "text-right")}>
-                                                {col.render(row)}
-                                            </span>
+                                            {col.render(row)}
                                         </td>
                                     ))}
                                 </tr>
@@ -1421,7 +1431,7 @@ export function DataTable<T>({
 cd Client && npx vitest run src/components/ui/data-table.test.tsx
 ```
 
-Expected: `7 passed`.
+Expected: `8 passed`.
 
 - [ ] **Step 5: Typecheck, lint, commit**
 
