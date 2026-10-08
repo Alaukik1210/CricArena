@@ -68,10 +68,14 @@ export default {
                 display: ["var(--font-display)"],
                 body: ["var(--font-body)"],
                 data: ["var(--font-data)"],
-                // DEPRECATED — @apply'd by the legacy block in index.css; the
-                // build fails without them. Removed in Task 15 with that block.
-                "cabinet-black": ["CabinetGrotesk-Black"],
-                "cabinet-extrabold": ["CabinetGrotesk-Extrabold"],
+                // DEPRECATED — the legacy .display-title / .section-title rules
+                // @apply these. Tailwind errors with "class does not exist" if
+                // they are removed while those rules remain. Mapped to the
+                // Maidan display face so legacy headings render in Anton rather
+                // than falling back to default sans (the CabinetGrotesk faces
+                // were deleted in Task 2). Task 15 drops both with the legacy block.
+                "cabinet-black": ["var(--font-display)"],
+                "cabinet-extrabold": ["var(--font-display)"],
             },
             borderRadius: {
                 DEFAULT: "var(--radius)",
