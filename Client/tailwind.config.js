@@ -5,6 +5,16 @@ export default {
         extend: {
             colors: {
                 ground: "var(--ground)",
+                // DEPRECATED - the 11 marketing components in features/marketing
+                // still use these 73 times. Task 3 removed them on the incorrect
+                // assumption they were unused, which silently dropped the classes
+                // (Tailwind does not error on unknown utilities). Restyling the
+                // marketing surface into Maidan is P1 design work, not P0a.
+                // Remove these together with that redesign.
+                goldy: "#b79558",
+                gold: "#FFD070",
+                goldx: "#363535",
+                orangex: "#FFD070",
                 surface: {
                     DEFAULT: "var(--surface)",
                     sunk: "var(--surface-sunk)",
@@ -68,6 +78,10 @@ export default {
                 display: ["var(--font-display)"],
                 body: ["var(--font-body)"],
                 data: ["var(--font-data)"],
+                // DEPRECATED - same reason as the gold* colours above.
+                "product-sans": ["Product Sans", "var(--font-body)"],
+                "product-sans-black": ["Product Sans Black", "var(--font-display)"],
+                "product-sans-medium": ["Product Sans Medium", "var(--font-body)"],
                 // DEPRECATED — the legacy .display-title / .section-title rules
                 // @apply these. Tailwind errors with "class does not exist" if
                 // they are removed while those rules remain. Mapped to the
