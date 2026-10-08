@@ -816,7 +816,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+// `buttonVariants` is intentionally NOT exported. Nothing consumes it, and
+// exporting a non-constant alongside a component trips
+// react-refresh/only-export-components, which Task 15 must drive to zero
+// warnings. Re-export it only when a caller actually needs it.
+export { Button };
 ```
 
 - [ ] **Step 4: Delete the old button and run the test — expect PASS**
@@ -985,7 +989,8 @@ const Badge = ({ className, tone, ...props }: BadgeProps) => (
     <span className={cn(badgeVariants({ tone }), className)} {...props} />
 );
 
-export { Badge, badgeVariants };
+// `badgeVariants` is intentionally not exported — same reason as buttonVariants.
+export { Badge };
 ```
 
 Then `rm src/components/ui/badge.jsx`.
