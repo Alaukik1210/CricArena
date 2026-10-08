@@ -47,6 +47,14 @@ describe("DataTable", () => {
         expect(screen.getByText("Saturday Powerplay")).not.toHaveClass("text-right");
     });
 
+    it("right-aligns a numeric column even when align is omitted", () => {
+        const cols: Column<Room>[] = [
+            { key: "dist", header: "Dist", numeric: true, render: (r) => `${r.distanceKm.toFixed(1)}km` },
+        ];
+        render(<DataTable columns={cols} rows={rows} getRowId={(r) => r.id} />);
+        expect(screen.getByText("7.0km")).toHaveClass("text-right");
+    });
+
     it("shows the empty message when there are no rows", () => {
         render(
             <DataTable
