@@ -14,6 +14,37 @@ jobs:
         working-directory: Client
     steps:
       - uses: actions/checkout@v4
+      # Repo-wide guard, so it lives in exactly one job rather than both.
+      # Two separate edits during the P0a refactor wrote cp1252 bytes (a 0x97
+      # em dash) into otherwise-UTF-8 sources; an invalid byte in a comment
+      # breaks no build and no test, so nothing else here would catch it.
+      - name: Check source files are valid UTF-8
+        working-directory: .
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          bad = []
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in
+                         ('node_modules', '.git', 'dist', '.next', '.superpowers', 'coverage')]
+              for f in files:
+                  if not f.endswith(('.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
+                                     '.css', '.json', '.md', '.yml', '.yaml',
+                                     '.prisma', '.html')):
+                      continue
+                  p = os.path.join(root, f)
+                  try:
+                      open(p, 'rb').read().decode('utf-8')
+                  except UnicodeDecodeError as e:
+                      bad.append(f"{p}: byte {hex(e.object[e.start])} at offset {e.start}")
+          if bad:
+              print("Invalid UTF-8 in source files:")
+              for b in bad:
+                  print("  " + b)
+              sys.exit(1)
+          print("All source files are valid UTF-8")
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -21,7 +52,7 @@ jobs:
           cache-dependency-path: Client/package-lock.json
       - run: npm ci
       - run: npm run typecheck
-      - run: npm run lint || true # TODO(Task 15): remove || true once lint is clean
+      - run: npm run lint
       - run: npm run test:run
       - run: npx vite build
 
@@ -41,4 +72,5 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npm run typecheck
+      - run: npm run lint
       - run: npm run test:run

@@ -28,7 +28,9 @@ export const createGround = asyncHandler(async (req: authRequest, res: Response)
             rating: data.rating ?? 0,
             bookings: data.bookings ?? 0,
             pitchType: data.pitchType,
-            facilities: data.facilities as any,
+            // `facilities` is `z.unknown().optional()` in ground.schemas.ts but
+            // `String[]` in the Prisma schema; assert rather than widen to `any`.
+            facilities: data.facilities as string[] | undefined,
             pricePerMatch: data.pricePerMatch,
             owner: { connect: { id: ownerId } },
         },
@@ -58,7 +60,8 @@ export const updateGround = asyncHandler(async (req: Request, res: Response) => 
         where: { id: req.params.id },
         data: {
             ...data,
-            facilities: data.facilities as any,
+            // See createGround: schema says `unknown`, Prisma says `String[]`.
+            facilities: data.facilities as string[] | undefined,
         },
     });
     res.status(200).json({ success: true, message: "Ground updated successfully", ground });

@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 declare global {
-    // eslint-disable-next-line no-var
+    // `var` is required here: it is the only declaration form that augments
+    // globalThis. `let`/`const` in a `declare global` block do not.
     var __cricArenaPrisma: PrismaClient | undefined;
 }
 

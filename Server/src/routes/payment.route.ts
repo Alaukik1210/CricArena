@@ -1,5 +1,5 @@
 import { BookingSessionStatus, BookingStatus, PaymentRecordStatus } from "@prisma/client";
-import { Router, Request, Response } from "express";
+import { Router, Response } from "express";
 import Stripe from "stripe";
 import { authentication, authRequest } from "../middleware/auth";
 import { prisma } from "../shared/db/prisma";
@@ -44,8 +44,10 @@ router.post("/create-payment-intent", authentication, async (req: authRequest, r
     }
 
     res.json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+  } catch (error) {
+    // `unknown` rather than `any`: same message for Error instances, and a
+    // fallback instead of a TypeError when something non-Error is thrown.
+    res.status(500).json({ error: error instanceof Error ? error.message : "Server error" });
   }
 });
 
@@ -186,10 +188,12 @@ router.post("/confirm-booking", authentication, async (req: authRequest, res: Re
       message: "Booking confirmed and persisted",
       booking,
     });
-  } catch (error: any) {
+  } catch (error) {
+    // See above: `unknown` + narrowing. The `&&` preserves the previous
+    // `error.message || "Server error"` behaviour for empty messages.
     res.status(500).json({
       success: false,
-      message: error.message || "Server error",
+      message: (error instanceof Error && error.message) || "Server error",
     });
   }
 });
