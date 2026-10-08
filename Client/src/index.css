@@ -1,8 +1,35 @@
 @import "./design/fonts.css";
+@import "./design/tokens.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    /* Accessibility floor — expanded in Task 14. */
+    :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+/* ===================================================================
+   DEPRECATED — legacy token system and utility classes.
+   24 files still consume these; they migrate in Tasks 4 and 9-13.
+   Task 15 deletes this whole block once grep proves zero consumers.
+   Do NOT add new usages. See docs/PLAN.md §5.
+   =================================================================== */
 
   @layer base {
   :root {

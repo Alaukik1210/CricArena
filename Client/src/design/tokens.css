@@ -1,0 +1,43 @@
+/* The single source of colour for the application.
+   Nothing outside src/design/ may write a colour literal — enforced by
+   lint in Task 15. See docs/PLAN.md §5. */
+
+:root {
+    /* surfaces */
+    --ground: #D9C9A8;
+    --surface: #FAF7F0;
+    --surface-sunk: #CFBE9B;
+
+    /* ink */
+    --ink: #2B2520;
+    --ink-soft: #6E665C;
+    --ink-faint: #A79D90;
+
+    /* semantic — each maps to a cricket meaning, not a mood */
+    --go: #3F6B47;
+    --urgent: #A32A1F;
+    --pending: #B07B2A;
+
+    /* line */
+    --rule: #2B2520;
+    --rule-soft: rgba(43, 37, 32, 0.16);
+
+    --radius: 3px;
+}
+
+html {
+    background: var(--ground);
+}
+
+body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* All numerals are tabular, everywhere. */
+.font-data,
+[class*="font-data"] {
+    font-variant-numeric: tabular-nums;
+}
