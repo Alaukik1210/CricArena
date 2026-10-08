@@ -1960,6 +1960,27 @@ The props are deliberately identical, so each migration is an import swap plus a
 | `border-white/10` | `border-rule-soft` |
 | `text-white/40`, `/60`, `/85` | `text-ink-soft` |
 
+**Legacy palette mapping** (applies to Tasks 12 and 13 only). Those screens predate `ProductShell` and carry a different vocabulary - 168 usages across eleven files. They are utilitarian app screens (forms, tables, profiles), so unlike the bespoke marketing surface this substitution is mechanical and belongs in P0a. Apply it so Task 15's no-raw-hex rule passes without an exemption.
+
+| Legacy | Replacement |
+|---|---|
+| `bg-black` (page background) | `bg-ground` |
+| `bg-black` (card/panel background) | `bg-surface` |
+| `bg-[#2d2d2d]`, `bg-[#3d3d3d]`, `bg-goldx` | `bg-surface-sunk` |
+| `text-[#FFD070]`, `text-gold`, `text-orangex` | `text-pending` |
+| `bg-[#FFD070]`, `bg-gold`, `bg-orangex` | `bg-pending` with `text-surface` |
+| `border-gold`, `border-orangex`, `border-[#FFD070]` | `border-pending` |
+| `border-goldx`, `border-[#2d2d2d]` | `border-rule` |
+| `text-white` | `text-ink` |
+| `text-gray-300`, `text-gray-400`, `text-white/60` | `text-ink-soft` |
+| `text-gray-500`, `text-white/40` | `text-ink-faint` |
+| `font-product-sans-black` | `font-display` |
+| `font-product-sans`, `font-product-sans-medium` | `font-body` |
+| `text-green-*` (success) | `text-go` |
+| `text-red-*` (error/destructive) | `text-urgent` |
+
+Where a background changes from dark to light, check the text on it still contrasts - a `bg-surface` panel needs `text-ink`, not the `text-white` it had before. That pairing is the one judgement call in this table; everything else is a direct substitution.
+
 ---
 
 ### Task 9: `features/marketing/` and `features/auth/`
