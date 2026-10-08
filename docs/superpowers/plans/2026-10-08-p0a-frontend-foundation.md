@@ -2879,6 +2879,12 @@ Append to `Client/eslint.config.js`, before the closing `]`:
           selector: "Literal[value=/\\brounded-(2xl|3xl|full)\\b/]",
           message: 'Radius above 3px is banned — chalk lines are straight. See docs/PLAN.md §5.',
         },
+        {
+          selector:
+            "Literal[value=/\b(bg|text|border|ring|from|to|via)-(ground|surface|surface-sunk|ink|ink-soft|ink-faint|go|urgent|pending|rule|rule-soft|scrim)\/[0-9]/]",
+          message:
+            'Opacity modifier on a design token emits NO CSS. The tokens are var() colours and Tailwind 3 cannot apply /N to them, so the utility silently does not exist. Use a dedicated token such as bg-scrim. This cost us an invisible modal scrim once already.',
+        },
       ],
     },
   },
