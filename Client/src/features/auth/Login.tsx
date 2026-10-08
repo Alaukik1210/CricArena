@@ -52,7 +52,7 @@ const Login = () => {
                             type="email"
                             autoComplete="email"
                             {...register("email")}
-                            className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+                            className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
                             placeholder="Enter your email"
                         />
                         {errors.email && (
@@ -66,7 +66,7 @@ const Login = () => {
                             type="password"
                             autoComplete="current-password"
                             {...register("password")}
-                            className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+                            className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
                             placeholder="Enter your password"
                         />
                         {errors.password && (
@@ -78,7 +78,7 @@ const Login = () => {
                         <label className="block text-ink text-sm font-bold mb-2">Role</label>
                         <select
                             {...register("role")}
-                            className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+                            className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
                         >
                             <option value="PLAYER">Player</option>
                             <option value="OWNER">Ground Owner</option>
@@ -105,7 +105,7 @@ const Login = () => {
                     <button
                         type="button"
                         onClick={() => navigate("/signup")}
-                        className="font-bold text-ink underline"
+                        className="font-bold text-ink underline hover:text-ink-soft"
                     >
                         Sign Up
                     </button>

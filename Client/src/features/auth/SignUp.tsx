@@ -147,7 +147,7 @@ const SignUp = () => {
               type="text"
               value={input.fullname}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
               placeholder="Enter your username"
             />
           </div>
@@ -160,7 +160,7 @@ const SignUp = () => {
               type="email"
               value={input.email}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
               placeholder="Enter your email"
             />
           </div>
@@ -173,7 +173,7 @@ const SignUp = () => {
               type="tel"
               value={input.phoneNumber}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
               placeholder="+91"
             />
           </div>
@@ -186,7 +186,7 @@ const SignUp = () => {
               type="password"
               value={input.password}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
               placeholder="Enter your password"
             />
           </div>
@@ -198,7 +198,7 @@ const SignUp = () => {
               name="role"
               value={input.role}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
             >
               <option value="PLAYER">Player</option>
               <option value="OWNER">Ground Owner</option>
@@ -213,7 +213,7 @@ const SignUp = () => {
                 name="state"
                 value={input.state}
                 onChange={changeEventHandler}
-                className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+                className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
               >
                 <option value="">Select State</option>
                 {statesAndCities.map((item) => (
@@ -231,7 +231,7 @@ const SignUp = () => {
                 name="city"
                 value={input.city}
                 onChange={changeEventHandler}
-                className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
+                className="w-full px-3 py-2 rounded bg-surface border border-rule text-ink placeholder:text-ink-faint"
                 disabled={!input.state}
               >
                 <option value="">Select City</option>
@@ -262,7 +262,7 @@ const SignUp = () => {
           Already have an account?{" "}
           <button
             onClick={() => navigate(`/login`)}
-            className="font-bold text-ink underline"
+            className="font-bold text-ink underline hover:text-ink-soft"
           >
             Login
           </button>

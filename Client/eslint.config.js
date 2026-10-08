@@ -71,7 +71,7 @@ export default [
 
   // Layer 3 never writes a colour. docs/PLAN.md §6.
   {
-    files: ['src/features/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}'],
     // src/features/marketing is exempt until P1. Those 11 components carry 45
     // raw hex literals and the legacy gold* palette; restyling a landing page
     // is design work, not mechanical migration, and P0a's remit is "nothing new
@@ -111,6 +111,19 @@ export default [
             "Literal[value=/\\b(bg|text|border|ring|from|to|via)-(ground|surface|surface-sunk|ink|ink-soft|ink-faint|go|urgent|pending|rule|rule-soft|scrim)\\x2f[0-9]/]",
           message:
             'Opacity modifier on a design token emits NO CSS. The tokens are var() colours and Tailwind 3 cannot apply /N to them, so the utility silently does not exist. Use a dedicated token such as bg-scrim. This cost us an invisible modal scrim once already.',
+        },
+        {
+          selector: "Literal[value=/\\b(bg|text|border|ring|from|to|via)-(black|white|gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(-[0-9]{2,3})?\\b/]",
+          message:
+            'Named Tailwind palette colour. Use a design token (bg-ground, text-ink, text-urgent, …). See docs/PLAN.md §5.',
+        },
+        {
+          selector: "Literal[value=/\\b(rgb|rgba|hsl|hsla)\\(/]",
+          message: 'Functional colour literal. Use a design token. See docs/PLAN.md §5.',
+        },
+        {
+          selector: "TemplateElement[value.raw=/\\b(rgb|rgba|hsl|hsla)\\(/]",
+          message: 'Functional colour literal in a template literal. Use a design token. See docs/PLAN.md §5.',
         },
       ],
     },
