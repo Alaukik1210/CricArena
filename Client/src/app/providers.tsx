@@ -8,7 +8,7 @@ import axios from "axios";
 import store, { persistor } from "../redux/store";
 import { queryClient } from "../lib/queryClient";
 import { onUnauthorized } from "../lib/auth-events";
-import { clearUser } from "../redux/userSlice";
+import { handleUnauthorized } from "./handle-unauthorized";
 
 // DEPRECATED - 14 legacy components still call raw axios and rely on this
 // global to send the auth cookie. They migrate to the typed `api` client in
@@ -17,20 +17,7 @@ import { clearUser } from "../redux/userSlice";
 axios.defaults.withCredentials = true;
 
 function UnauthorizedListener() {
-    useEffect(
-        () =>
-            onUnauthorized(() => {
-                store.dispatch(clearUser());
-                queryClient.clear();
-                void persistor.purge();
-                const { pathname, search } = window.location;
-                if (pathname !== "/login") {
-                    const next = encodeURIComponent(pathname + search);
-                    window.location.assign(`/login?next=${next}`);
-                }
-            }),
-        [],
-    );
+    useEffect(() => onUnauthorized(() => handleUnauthorized()), []);
     return null;
 }
 
@@ -41,7 +28,7 @@ export function Providers({ children }: { children: ReactNode }) {
                 <QueryClientProvider client={queryClient}>
                     <UnauthorizedListener />
                     {children}
-                    <Toaster position="top-right" richColors />
+                    <Toaster theme="light" position="top-right" richColors />
                 </QueryClientProvider>
             </PersistGate>
         </Provider>
