@@ -29,6 +29,18 @@
     --radius: 3px;
 }
 
+/* Stacking order. These are plain numbers, not tokens: Tailwind's z-* scale
+   does not read CSS variables, so there is nothing to point a token at.
+   Written down because equal z-index values fall back to DOM order, which has
+   silently broken two things in this codebase - a modal overlay, and the skip
+   link, which was painted behind the navbar's opaque bar in the same corner.
+   Neither a build, a type check nor a test can catch it: Tailwind emits the
+   class, TypeScript sees a string, and jsdom does no layout.
+     60  skip link       - must clear the navbar; it shares the top-left corner
+     50  navbar, modals  - fixed chrome
+      0  page content
+   Anything new that overlays the navbar belongs above 50; record it here. */
+
 html {
     background: var(--ground);
 }
