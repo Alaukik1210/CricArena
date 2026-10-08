@@ -68,4 +68,51 @@ export default [
     files: ['**/*.test.{ts,tsx}', 'src/test/**'],
     languageOptions: { globals: { ...globals.node } },
   },
+
+  // Layer 3 never writes a colour. docs/PLAN.md §6.
+  {
+    files: ['src/features/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
+    // src/features/marketing is exempt until P1. Those 11 components carry 45
+    // raw hex literals and the legacy gold* palette; restyling a landing page
+    // is design work, not mechanical migration, and P0a's remit is "nothing new
+    // ships, existing things become correct". Remove this exemption as part of
+    // the P1 marketing redesign - see docs/PLAN.md section 4.
+    ignores: ['src/design/**', 'src/features/marketing/**'],
+    rules: {
+      // esquery regex literals end at the first "/", so a slash inside one
+      // (white/10, ink/70) is written as \x2f.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+          message:
+            'Raw colour literal. Use a design token (bg-ground, text-ink, text-go, …). See docs/PLAN.md §5.',
+        },
+        {
+          // A Literal selector does not see template literals: the class string
+          // in className={`bg-[#fff] ${x}`} is a TemplateElement, so the rule
+          // above would miss it entirely. This codebase uses template literals
+          // for conditional classNames, so that hole is reachable.
+          selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}\\b/]",
+          message:
+            'Raw colour literal in a template literal. Use a design token. See docs/PLAN.md §5.',
+        },
+        {
+          selector: "Literal[value=/\\b(bg|text|border)-white\\x2f[0-9]+/]",
+          message:
+            'Translucent white overlay is banned. Use bg-surface-sunk or border-rule-soft. See docs/PLAN.md §5.',
+        },
+        {
+          selector: "Literal[value=/\\brounded-(2xl|3xl|full)\\b/]",
+          message: 'Radius above 3px is banned — chalk lines are straight. See docs/PLAN.md §5.',
+        },
+        {
+          selector:
+            "Literal[value=/\\b(bg|text|border|ring|from|to|via)-(ground|surface|surface-sunk|ink|ink-soft|ink-faint|go|urgent|pending|rule|rule-soft|scrim)\\x2f[0-9]/]",
+          message:
+            'Opacity modifier on a design token emits NO CSS. The tokens are var() colours and Tailwind 3 cannot apply /N to them, so the utility silently does not exist. Use a dedicated token such as bg-scrim. This cost us an invisible modal scrim once already.',
+        },
+      ],
+    },
+  },
 ]

@@ -4,13 +4,14 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
 
 // rounded-full is intentional here: a circular avatar is the one place the
-// no-pill rule does not apply. Task 15 adds the lint exemption.
+// no-pill rule does not apply. Each site carries a per-line lint exemption.
 const Avatar = React.forwardRef<
     React.ElementRef<typeof AvatarPrimitive.Root>,
     React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
 >(({ className, ...props }, ref) => (
     <AvatarPrimitive.Root
         ref={ref}
+        // eslint-disable-next-line no-restricted-syntax -- circular avatar is deliberate
         className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)}
         {...props}
     />
@@ -31,6 +32,7 @@ const AvatarFallback = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <AvatarPrimitive.Fallback
         ref={ref}
+        // eslint-disable-next-line no-restricted-syntax -- circular avatar fallback is deliberate
         className={cn("flex h-full w-full items-center justify-center rounded-full bg-surface-sunk text-ink", className)}
         {...props}
     />

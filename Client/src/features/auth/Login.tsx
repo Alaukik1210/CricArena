@@ -10,6 +10,7 @@ import { loginFormSchema, type LoginFormValues } from "./auth.schemas";
 import { useAppDispatch } from "@/redux/store";
 import { setUser } from "@/redux/userSlice";
 import { showApiError } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -39,59 +40,55 @@ const Login = () => {
     const isPending = loginMutation.isPending;
 
     return (
-        <div className="h-screen bg-black flex items-center justify-center">
-            <div className="max-w-md w-full font-display p-6 bg-[#3d3d3d] rounded-lg shadow-lg">
-                <h2 className="text-3xl font-bold text-[#FFD070] text-center mb-6">
+        <div className="h-screen bg-ground flex items-center justify-center">
+            <div className="max-w-md w-full font-display p-6 bg-surface border border-rule-soft rounded shadow-lg">
+                <h2 className="text-3xl font-bold text-ink text-center mb-6">
                     Login to CricArena
                 </h2>
                 <form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <div className="mb-4">
-                        <label className="block text-white text-sm font-bold mb-2">Email</label>
+                        <label className="block text-ink text-sm font-bold mb-2">Email</label>
                         <input
                             type="email"
                             autoComplete="email"
                             {...register("email")}
-                            className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+                            className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
                             placeholder="Enter your email"
                         />
                         {errors.email && (
-                            <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+                            <p className="text-urgent text-xs mt-1">{errors.email.message}</p>
                         )}
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-white text-sm font-bold mb-2">Password</label>
+                        <label className="block text-ink text-sm font-bold mb-2">Password</label>
                         <input
                             type="password"
                             autoComplete="current-password"
                             {...register("password")}
-                            className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+                            className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
                             placeholder="Enter your password"
                         />
                         {errors.password && (
-                            <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>
+                            <p className="text-urgent text-xs mt-1">{errors.password.message}</p>
                         )}
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-white text-sm font-bold mb-2">Role</label>
+                        <label className="block text-ink text-sm font-bold mb-2">Role</label>
                         <select
                             {...register("role")}
-                            className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+                            className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
                         >
                             <option value="PLAYER">Player</option>
                             <option value="OWNER">Ground Owner</option>
                         </select>
                         {errors.role && (
-                            <p className="text-red-400 text-xs mt-1">{errors.role.message}</p>
+                            <p className="text-urgent text-xs mt-1">{errors.role.message}</p>
                         )}
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={isPending}
-                        className="w-full bg-[#FFD070] text-black font-bold py-2 px-4 rounded h-10 flex items-center justify-center gap-2 disabled:opacity-70"
-                    >
+                    <Button type="submit" disabled={isPending} className="w-full h-10">
                         {isPending ? (
                             <>
                                 <Loader2 className="animate-spin h-4 w-4" />
@@ -100,15 +97,15 @@ const Login = () => {
                         ) : (
                             "Login"
                         )}
-                    </button>
+                    </Button>
                 </form>
 
-                <p className="text-center text-white mt-4">
+                <p className="text-center text-ink mt-4">
                     Don’t have an account?{" "}
                     <button
                         type="button"
                         onClick={() => navigate("/signup")}
-                        className="text-[#FFD070] hover:underline"
+                        className="font-bold text-ink underline"
                     >
                         Sign Up
                     </button>

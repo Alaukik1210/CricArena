@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { setLoading } from "@/redux/authSlice";
 import { setUser } from "@/redux/userSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { Button } from "@/components/ui/button";
 import type { Role } from "@/types/user";
 import type { AuthResponse, RegisterRequest } from "./auth.api";
 
@@ -131,14 +132,14 @@ const SignUp = () => {
   };
 
   return (
-    <div className="h-screen pt-12 bg-black   font-display flex items-center justify-center">
-      <div className="max-w-md w-full p-6 bg-[#3d3d3d] rounded-lg shadow-lg">
-        <h2 className="text-3xl font-bold text-[#FFD070] text-center mb-6">
+    <div className="h-screen pt-12 bg-ground font-display flex items-center justify-center">
+      <div className="max-w-md w-full p-6 bg-surface border border-rule-soft rounded shadow-lg">
+        <h2 className="text-3xl font-bold text-ink text-center mb-6">
           Sign Up for CricArena
         </h2>
         <form onSubmit={onSubmitHandler}>
           <div className="mb-4">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-ink text-sm font-bold mb-2">
               Username
             </label>
             <input
@@ -146,12 +147,12 @@ const SignUp = () => {
               type="text"
               value={input.fullname}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
               placeholder="Enter your username"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-ink text-sm font-bold mb-2">
               Email
             </label>
             <input
@@ -159,12 +160,12 @@ const SignUp = () => {
               type="email"
               value={input.email}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
               placeholder="Enter your email"
             />
           </div>
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-ink text-sm font-bold mb-2">
               Phone Number
             </label>
             <input
@@ -172,12 +173,12 @@ const SignUp = () => {
               type="tel"
               value={input.phoneNumber}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
               placeholder="+91"
             />
           </div>
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-ink text-sm font-bold mb-2">
               Password
             </label>
             <input
@@ -185,19 +186,19 @@ const SignUp = () => {
               type="password"
               value={input.password}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
               placeholder="Enter your password"
             />
           </div>
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-ink text-sm font-bold mb-2">
               Role
             </label>
             <select
               name="role"
               value={input.role}
               onChange={changeEventHandler}
-              className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+              className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
             >
               <option value="PLAYER">Player</option>
               <option value="OWNER">Ground Owner</option>
@@ -205,14 +206,14 @@ const SignUp = () => {
           </div>
           <div className="flex gap-10">
             <div className="mb-6 w-[50%]">
-              <label className="block text-white text-sm font-bold mb-2">
+              <label className="block text-ink text-sm font-bold mb-2">
                 State
               </label>
               <select
                 name="state"
                 value={input.state}
                 onChange={changeEventHandler}
-                className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+                className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
               >
                 <option value="">Select State</option>
                 {statesAndCities.map((item) => (
@@ -223,14 +224,14 @@ const SignUp = () => {
               </select>
             </div>
             <div className="mb-6 w-[50%]">
-              <label className="block text-white text-sm font-bold mb-2">
+              <label className="block text-ink text-sm font-bold mb-2">
                 City
               </label>
               <select
                 name="city"
                 value={input.city}
                 onChange={changeEventHandler}
-                className="w-full px-3 py-2 rounded-md bg-[#2d2d2d] text-white focus:outline-none"
+                className="w-full px-3 py-2 rounded bg-surface border border-rule-soft text-ink placeholder:text-ink-faint"
                 disabled={!input.state}
               >
                 <option value="">Select City</option>
@@ -246,23 +247,22 @@ const SignUp = () => {
             </div>
           </div>
           <div className="flex items-center justify-between">
-          {
-              loading?<button type="button" disabled className='w-full bg-[#FFD070] text-black font-bold py-2 px-4 rounded h-10 flex items-center justify-center gap-2'> <Loader2   className='text-center   animate-spin'/> Please wait</button> : <button
-            
-              type="submit"
-              className="w-full bg-[#FFD070]  text-black font-bold py-2 px-4 rounded group relative h-10  overflow-hidden  text-md  border-gold  text-center"
-            >
+          {loading ? (
+            <Button type="button" disabled className="w-full h-10">
+              <Loader2 className="animate-spin" /> Please wait
+            </Button>
+          ) : (
+            <Button type="submit" className="w-full h-10">
               Sign up
-              <div className="absolute inset-0 h-full w-full scale-0 rounded-2xl transition-all duration-300 group-hover:scale-100 group-hover:bg-white/30"></div>
-            </button>
-            }
+            </Button>
+          )}
           </div>
         </form>
-        <p className="text-center text-white mt-4">
+        <p className="text-center text-ink mt-4">
           Already have an account?{" "}
           <button
             onClick={() => navigate(`/login`)}
-            className="text-[#FFD070] hover:underline"
+            className="font-bold text-ink underline"
           >
             Login
           </button>

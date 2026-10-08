@@ -151,6 +151,7 @@ export default function Tours() {
             <div key={item} className="overflow-hidden rounded border border-rule bg-surface p-6">
               <div className="mb-6 flex justify-between">
                 <div className="h-6 w-48 animate-pulse rounded bg-surface-sunk"></div>
+                {/* eslint-disable-next-line no-restricted-syntax -- skeleton status pill */}
                 <div className="h-6 w-20 animate-pulse rounded-full bg-surface-sunk"></div>
               </div>
 
@@ -159,6 +160,7 @@ export default function Tours() {
               <div className="mb-6 space-y-3">
                 {[1, 2, 3, 4].map((line) => (
                   <div key={line} className="flex items-center">
+                    {/* eslint-disable-next-line no-restricted-syntax -- skeleton bullet dot */}
                     <div className="mr-2 h-4 w-4 animate-pulse rounded-full bg-surface-sunk"></div>
                     <div className="h-4 w-48 animate-pulse rounded bg-surface-sunk"></div>
                   </div>

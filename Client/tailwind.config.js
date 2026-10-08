@@ -32,48 +32,6 @@ export default {
                     DEFAULT: "var(--rule)",
                     soft: "var(--rule-soft)",
                 },
-                // DEPRECATED shadcn HSL mappings — kept for ui/*.jsx primitives
-                // until Task 13; removed in Task 15 with the legacy :root block.
-                background: "hsl(var(--background))",
-                foreground: "hsl(var(--foreground))",
-                card: {
-                    DEFAULT: "hsl(var(--card))",
-                    foreground: "hsl(var(--card-foreground))",
-                },
-                popover: {
-                    DEFAULT: "hsl(var(--popover))",
-                    foreground: "hsl(var(--popover-foreground))",
-                },
-                primary: {
-                    DEFAULT: "hsl(var(--primary))",
-                    foreground: "hsl(var(--primary-foreground))",
-                },
-                secondary: {
-                    DEFAULT: "hsl(var(--secondary))",
-                    foreground: "hsl(var(--secondary-foreground))",
-                },
-                muted: {
-                    DEFAULT: "hsl(var(--muted))",
-                    foreground: "hsl(var(--muted-foreground))",
-                },
-                accent: {
-                    DEFAULT: "hsl(var(--accent))",
-                    foreground: "hsl(var(--accent-foreground))",
-                },
-                destructive: {
-                    DEFAULT: "hsl(var(--destructive))",
-                    foreground: "hsl(var(--destructive-foreground))",
-                },
-                border: "hsl(var(--border))",
-                input: "hsl(var(--input))",
-                ring: "hsl(var(--ring))",
-                chart: {
-                    1: "hsl(var(--chart-1))",
-                    2: "hsl(var(--chart-2))",
-                    3: "hsl(var(--chart-3))",
-                    4: "hsl(var(--chart-4))",
-                    5: "hsl(var(--chart-5))",
-                },
             },
             fontFamily: {
                 display: ["var(--font-display)"],
@@ -83,14 +41,6 @@ export default {
                 "product-sans": ["Product Sans", "var(--font-body)"],
                 "product-sans-black": ["Product Sans Black", "var(--font-display)"],
                 "product-sans-medium": ["Product Sans Medium", "var(--font-body)"],
-                // DEPRECATED — the legacy .display-title / .section-title rules
-                // @apply these. Tailwind errors with "class does not exist" if
-                // they are removed while those rules remain. Mapped to the
-                // Maidan display face so legacy headings render in Anton rather
-                // than falling back to default sans (the CabinetGrotesk faces
-                // were deleted in Task 2). Task 15 drops both with the legacy block.
-                "cabinet-black": ["var(--font-display)"],
-                "cabinet-extrabold": ["var(--font-display)"],
             },
             borderRadius: {
                 DEFAULT: "var(--radius)",
@@ -114,10 +64,9 @@ export default {
             screens: { xs: "475px" },
         },
     },
-    // DEPRECATED — ui/popover, ui/select, ui/tabs and ui/toast use this
-    // plugin's animate-in / fade-* / zoom-* / slide-in-* utilities and remain
-    // .jsx until Task 13. Removing it here silently drops those utilities
-    // (Tailwind emits no error for an unknown class) and kills their
-    // enter/exit transitions. Revisit in Task 15.
+    // Live dependency: ui/popover and ui/select use animate-in / animate-out /
+    // fade-* / zoom-* / slide-in-*. Tailwind emits no error for an unknown
+    // utility, so removing this would silently kill their transitions.
+    // Re-check with: grep -rnE "animate-in|animate-out|fade-(in|out)|zoom-(in|out)|slide-in-" src/
     plugins: [require("tailwindcss-animate")],
 };

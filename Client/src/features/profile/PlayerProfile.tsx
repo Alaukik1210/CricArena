@@ -145,6 +145,7 @@ const PlayerProfile = () => {
         {/* Skeleton Header */}
         <div className="flex animate-pulse flex-col items-center justify-between rounded border border-rule bg-surface p-6 shadow-lg md:flex-row">
           <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line no-restricted-syntax -- skeleton of the circular avatar */}
             <div className="h-16 w-16 rounded-full bg-surface-sunk"></div>
             <div>
               <div className="mb-2 h-6 w-32 rounded bg-surface-sunk"></div>
@@ -227,6 +228,7 @@ const PlayerProfile = () => {
           <img
             src={profile.profilePhoto || "https://via.placeholder.com/150"}
             alt="Profile"
+            // eslint-disable-next-line no-restricted-syntax -- circular avatar photo
             className="h-16 w-16 rounded-full border-2 border-pending object-cover shadow-md"
           />
           <div className="space-y-2">
