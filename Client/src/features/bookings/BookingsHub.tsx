@@ -1,12 +1,23 @@
-import axios from "axios";
 import { CalendarDays, CircleCheckBig, ReceiptText, Ticket } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ProductShell, SectionBlock, MetricCard } from "./ProductShell";
-import { BOOKING_SESSION_API_END_POINT } from "@/utils/constants";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PageShell, Section, Stat } from "@/components/ui/page-shell";
+import { api } from "@/lib/api";
+
+interface BookingSession {
+  id: string;
+  status: string;
+  amount?: number;
+  currency?: string;
+  startsAt?: string | null;
+  ground?: { name?: string; location?: string } | null;
+  booking?: unknown;
+}
 
 export default function BookingsHub() {
-  const [sessions, setSessions] = useState([]);
+  const [sessions, setSessions] = useState<BookingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
 
@@ -14,7 +25,7 @@ export default function BookingsHub() {
     const loadSessions = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BOOKING_SESSION_API_END_POINT}/mine`);
+        const response = await api.get<{ sessions?: BookingSession[] }>("/booking-sessions/mine");
         setSessions(response.data.sessions || []);
       } catch (error) {
         console.error("Failed to load booking sessions:", error);
@@ -46,63 +57,67 @@ export default function BookingsHub() {
   );
 
   return (
-    <ProductShell
+    <PageShell
       kicker="Bookings"
       title="Track every booking from session to confirmation."
       description="This view is intentionally clean: what you tried to book, what got confirmed, and what still needs action."
       actions={
-        <Link to="/grounds" className="cta-primary">
-          <Ticket className="mr-2 h-4 w-4" />
-          Book A Ground
-        </Link>
+        <Button asChild>
+          <Link to="/grounds">
+            <Ticket className="mr-2 h-4 w-4" />
+            Book A Ground
+          </Link>
+        </Button>
       }
     >
-      <section className="product-grid-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4">
         {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
+          <Stat key={metric.label} {...metric} />
         ))}
       </section>
 
-      {status ? <div className="product-panel px-5 py-4 text-sm text-[#f0ddb0] md:px-6">{status}</div> : null}
+      {status ? (
+        <div className="rounded border border-rule bg-surface px-5 py-4 text-sm text-pending md:px-6">{status}</div>
+      ) : null}
 
-      <SectionBlock
+      <Section
         kicker="My Booking Sessions"
         title="One list, direct decisions"
         description="This is the standard booking history rhythm: status first, context second, next action obvious."
       >
         {loading ? (
-          <div className="product-card muted-copy">Loading your booking sessions...</div>
+          <div className="rounded border border-rule bg-surface p-5 text-ink-soft">Loading your booking sessions...</div>
         ) : sessions.length === 0 ? (
-          <div className="product-card muted-copy">
+          <div className="rounded border border-rule bg-surface p-5 text-ink-soft">
             You have not created any booking sessions yet. Start from Grounds to book a slot cleanly.
           </div>
         ) : (
           <div className="space-y-4">
             {sessions.map((session) => (
-              <article key={session.id} className="product-card">
+              <article key={session.id} className="rounded border border-rule bg-surface p-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <span className={session.status === "CONFIRMED" ? "pill-accent" : "pill-gold"}>
-                      {session.status.replaceAll("_", " ")}
-                    </span>
-                    <h3 className="mt-4 text-xl font-cabinet-bold">{session.ground?.name || "Ground booking"}</h3>
-                    <p className="muted-copy mt-2 text-sm">
+                    <Badge tone={session.status === "CONFIRMED" ? "go" : "pending"}>
+                      {session.status.replace(/_/g, " ")}
+                    </Badge>
+                    <h3 className="mt-4 font-body text-xl font-semibold">{session.ground?.name || "Ground booking"}</h3>
+                    <p className="mt-2 text-sm text-ink-soft">
                       {session.ground?.location || "Location unavailable"} • ₹{Number(session.amount || 0).toLocaleString()}
                     </p>
                   </div>
-                  <div className="grid gap-2 text-sm text-white/80">
+                  <div className="grid gap-2 text-sm text-ink-soft">
                     <div className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-[#d8b56d]" />
+                      <CalendarDays className="h-4 w-4 text-pending" />
                       <span>
                         {session.startsAt ? new Date(session.startsAt).toLocaleString() : "Time pending"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <ReceiptText className="h-4 w-4 text-[#d8b56d]" />
+                      <ReceiptText className="h-4 w-4 text-pending" />
                       <span>{session.currency?.toUpperCase() || "INR"}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CircleCheckBig className="h-4 w-4 text-[#8bc78f]" />
+                      <CircleCheckBig className="h-4 w-4 text-go" />
                       <span>{session.booking ? "Structured booking recorded" : "Awaiting final booking record"}</span>
                     </div>
                   </div>
@@ -111,7 +126,7 @@ export default function BookingsHub() {
             ))}
           </div>
         )}
-      </SectionBlock>
-    </ProductShell>
+      </Section>
+    </PageShell>
   );
 }

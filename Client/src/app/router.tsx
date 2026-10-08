@@ -18,10 +18,10 @@ const PlayerProfile = lazy(() => import("../components/PlayerProfile.jsx"));
 const GroundsPage = lazy(() => import("../features/grounds/GroundsPage"));
 const About_cric = lazy(() => import("../features/marketing/About_cric"));
 const RegisterTour = lazy(() => import("../components/RegisterTour.jsx"));
-const CheckoutPage = lazy(() => import("../components/CheckoutPage.jsx"));
+const CheckoutPage = lazy(() => import("../features/bookings/CheckoutPage"));
 const DiscoverPage = lazy(() => import("../features/discovery/DiscoverPage"));
 const RoomsHub = lazy(() => import("../features/rooms/RoomsHub"));
-const BookingsHub = lazy(() => import("../components/BookingsHub.jsx"));
+const BookingsHub = lazy(() => import("../features/bookings/BookingsHub"));
 const OwnerAnalytics = lazy(() => import("../components/OwnerAnalytics.jsx"));
 const OrganizerAnalytics = lazy(() => import("../components/OrganizerAnalytics.jsx"));
 

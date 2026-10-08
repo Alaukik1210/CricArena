@@ -1,27 +1,33 @@
 import { loadStripe } from "@stripe/stripe-js";
+import type { StripeCardElementOptions } from "@stripe/stripe-js";
 import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
+import type { FormEvent } from "react";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PAYMENT_API_END_POINT, STRIPE_PUBLISHABLE_KEY } from "@/utils/constants";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import { STRIPE_PUBLISHABLE_KEY } from "@/utils/constants";
 import { stripeCardStyle } from "@/design/stripe-appearance";
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
-const cardElementOptions = {
+const cardElementOptions: StripeCardElementOptions = {
   style: stripeCardStyle,
 };
 
-function CheckoutForm({ clientSecret }) {
+interface CheckoutFormProps {
+  clientSecret: string;
+}
+
+function CheckoutForm({ clientSecret }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!stripe || !elements) {
@@ -51,7 +57,7 @@ function CheckoutForm({ clientSecret }) {
 
     if (result.paymentIntent?.status === "succeeded") {
       try {
-        await axios.post(`${PAYMENT_API_END_POINT}/confirm-booking`, {
+        await api.post("/payment/confirm-booking", {
           paymentIntentId: result.paymentIntent.id,
         });
         navigate("/bookings");
@@ -70,43 +76,46 @@ function CheckoutForm({ clientSecret }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+      <div className="rounded border border-rule bg-surface p-5">
         <CardElement options={cardElementOptions} />
       </div>
 
-      <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 text-sm text-white/75">
+      <div className="rounded border border-rule-soft bg-surface-sunk p-4 text-sm text-ink-soft">
         <div className="flex items-start gap-3">
-          <ShieldCheck className="mt-0.5 h-4 w-4 text-[#8bc78f]" />
+          <ShieldCheck className="mt-0.5 h-4 w-4 text-go" />
           <p>After payment succeeds, the platform confirms your booking session and records the booking automatically.</p>
         </div>
       </div>
 
       {status ? (
-        <div className="rounded-[20px] border border-[#cd725e]/30 bg-[#cd725e]/10 px-4 py-3 text-sm text-[#f5d1c7]">
+        <div className="rounded border border-urgent bg-surface px-4 py-3 text-sm text-urgent">
           {status}
         </div>
       ) : null}
 
-      <button type="submit" disabled={!stripe || loading} className="cta-primary w-full justify-center">
+      <Button type="submit" disabled={!stripe || loading} className="w-full justify-center">
         <ArrowRight className="mr-2 h-4 w-4" />
         {loading ? "Processing Payment..." : "Pay And Confirm Booking"}
-      </button>
+      </Button>
     </form>
   );
 }
 
-CheckoutForm.propTypes = {
-  clientSecret: PropTypes.string.isRequired,
-};
+interface StripeCheckoutWrapperProps {
+  clientSecret: string;
+  // CheckoutPage passes this, but the wrapper has never read it. It is
+  // declared only so the call site type-checks; do not wire it up here.
+  bookingSessionId?: string;
+}
 
-export default function StripeCheckoutWrapper({ clientSecret }) {
+export default function StripeCheckoutWrapper({ clientSecret }: StripeCheckoutWrapperProps) {
   if (!clientSecret) {
-    return <div className="muted-copy text-sm">Payment session not found.</div>;
+    return <div className="text-sm text-ink-soft">Payment session not found.</div>;
   }
 
   if (!stripePromise) {
     return (
-      <div className="rounded-[24px] border border-white/10 bg-white/5 p-5 text-sm text-white/80">
+      <div className="rounded border border-rule bg-surface p-5 text-sm text-ink-soft">
         Stripe is not configured yet. Add `VITE_STRIPE_PUBLISHABLE_KEY` to the client environment.
       </div>
     );
@@ -118,7 +127,3 @@ export default function StripeCheckoutWrapper({ clientSecret }) {
     </Elements>
   );
 }
-
-StripeCheckoutWrapper.propTypes = {
-  clientSecret: PropTypes.string.isRequired,
-};

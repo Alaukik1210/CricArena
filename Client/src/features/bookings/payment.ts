@@ -1,10 +1,9 @@
-import axios from "axios";
-import { PAYMENT_API_END_POINT } from "@/utils/constants";
+import { api } from "@/lib/api";
 
-export const startPayment = async (ground) => {
+export const startPayment = async (ground: { pricePerMatch: number }): Promise<string> => {
   try {
-    const response = await axios.post(
-      `${PAYMENT_API_END_POINT}/create-payment-intent`,
+    const response = await api.post<{ clientSecret: string }>(
+      "/payment/create-payment-intent",
       {
         amount: ground.pricePerMatch * 100,
         currency: "inr",
