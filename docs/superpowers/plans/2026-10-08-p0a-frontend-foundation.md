@@ -1086,6 +1086,22 @@ describe("CreaseCard", () => {
         render(<CreaseCard title="Partial" meta="m" current={7} required={11} />);
         expect(screen.getByRole("group")).toHaveAttribute("data-complete", "false");
     });
+
+    it("inks the crease in exact proportion to the squad", () => {
+        render(<CreaseCard title="Room" meta="m" current={7} required={11} />);
+        // 7/11 = 63.64% of the perimeter, normalised by pathLength=100
+        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "63.64 100");
+    });
+
+    it("closes the crease for a full squad", () => {
+        render(<CreaseCard title="Full" meta="m" current={11} required={11} />);
+        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "100.00 100");
+    });
+
+    it("leaves the crease unmarked for an empty squad", () => {
+        render(<CreaseCard title="Empty" meta="m" current={0} required={11} />);
+        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "0.00 100");
+    });
 });
 ```
 
@@ -1099,7 +1115,9 @@ Expected: FAIL — `Failed to resolve import "./crease-card"`.
 
 - [ ] **Step 3: Implement `Client/src/components/ui/crease-card.tsx`**
 
-The partial border is drawn with a `conic-gradient` border-image so it traces the rectangle's perimeter rather than fading.
+The partial border is drawn as an SVG outline with `pathLength={100}`, which normalises the rectangle's perimeter to 100 units so `strokeDasharray` inks **exactly** `fill` of the border length at any aspect ratio.
+
+A `conic-gradient` `border-image` is the obvious first idea and is wrong: it inks by *angle*, so on a 3:1 card 7/11 does not cover 63.6% of the border, and `border-image` also ignores `border-radius`, leaving this one card square-cornered while every other surface is 3px. Since the component's whole claim is "ink drawn equals squad filled", an approximation defeats it.
 
 ```tsx
 import * as React from "react";
@@ -1124,7 +1142,6 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
     ({ title, meta, current, required, className, children, ...props }, ref) => {
         const fill = creaseFill(current, required);
         const complete = fill === 1;
-        const degrees = fill * 360;
 
         return (
             <div
@@ -1132,21 +1149,38 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
                 role="group"
                 aria-label={`${title} — ${current} of ${required} players`}
                 data-complete={complete ? "true" : "false"}
-                className={cn("relative bg-surface p-5", className)}
-                style={{
-                    border: "1px solid transparent",
-                    borderImageSlice: 1,
-                    borderImageSource: `conic-gradient(from 0deg, var(--rule) 0deg ${degrees}deg, transparent ${degrees}deg 360deg)`,
-                }}
+                className={cn("relative rounded bg-surface p-5", className)}
                 {...props}
             >
-                <h3 className="font-display text-xl uppercase leading-none tracking-wide text-ink">{title}</h3>
-                <p className="mt-2 text-sm text-ink-soft">{meta}</p>
-                <p className="mt-3 font-data text-sm text-ink">
-                    {current}/{required}
-                    <span className="ml-2 text-ink-soft">{complete ? "full" : `${required - current} needed`}</span>
-                </p>
-                {children}
+                {/*
+                  The crease. pathLength={100} normalises the rectangle's
+                  perimeter to 100 units, so strokeDasharray inks exactly
+                  `fill` of the border length regardless of aspect ratio.
+                  strokeWidth 2 on the viewport edge leaves a crisp 1px after
+                  the SVG clips the outer half. The faint rect underneath is
+                  the unmarked crease, so a 0/11 card still reads as a card.
+                */}
+                <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+                    <rect x="0" y="0" width="100%" height="100%" rx="3" fill="none"
+                          stroke="var(--rule-soft)" strokeWidth="2" />
+                    <rect x="0" y="0" width="100%" height="100%" rx="3" fill="none"
+                          stroke="var(--rule)" strokeWidth="2"
+                          pathLength={100}
+                          strokeDasharray={`${(fill * 100).toFixed(2)} 100`}
+                          data-testid="crease-stroke" />
+                </svg>
+
+                <div className="relative">
+                    <h3 className="font-display text-xl uppercase leading-none tracking-wide text-ink">{title}</h3>
+                    <p className="mt-2 text-sm text-ink-soft">{meta}</p>
+                    <p className="mt-3 font-data text-sm text-ink">
+                        {current}/{required}
+                        <span className="ml-2 text-ink-soft">
+                            {complete ? "full" : `${required - current} needed`}
+                        </span>
+                    </p>
+                    {children}
+                </div>
             </div>
         );
     },
@@ -1160,7 +1194,7 @@ CreaseCard.displayName = "CreaseCard";
 cd Client && npx vitest run src/components/ui/crease-card.test.tsx
 ```
 
-Expected: `10 passed`.
+Expected: `13 passed`.
 
 - [ ] **Step 5: Typecheck and lint**
 
