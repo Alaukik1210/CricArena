@@ -2169,15 +2169,29 @@ Fix the `useEffect` missing-dependency warning in `CricketScoreboard` by wrappin
 
 Convert `avatar`, `popover`, `select`, `tabs`, `toast`, `toaster` to `.tsx` with `React.ComponentPropsWithoutRef<typeof X.Root>` typing, and rewire their colours to tokens. Delete each `.jsx`.
 
-- [ ] **Step 4: Delete `ProductShell.jsx`**
+- [ ] **Step 4: Migrate `App.tsx`, then delete `ProductShell.jsx`**
 
-Every consumer was migrated in Tasks 9–12.
+`App.tsx` is the logged-in home dashboard and is the **last** consumer of `ProductShell`, `MetricCard`, and `SectionBlock` — Tasks 9–12 did not touch it. Migrate it first:
+
+- Replace `<ProductShell kicker title description actions>` with a plain header block: `<div className="mx-auto max-w-7xl space-y-6 px-4 pb-16 pt-28 md:px-8">` wrapping an `<h1 className="font-display text-4xl uppercase leading-none tracking-wide md:text-5xl">`.
+- Replace each `<MetricCard label value detail />` with a `<Card>` containing a `text-xs uppercase tracking-widest text-ink-soft` label, a `font-data text-3xl tabular-nums` value, and a `text-sm text-ink-soft` detail.
+- Replace each `<SectionBlock kicker title description>` with `<section className="rounded border border-rule bg-surface p-6 md:p-8">` plus the same kicker/title/copy classes.
+- Replace `cta-primary` / `cta-secondary` with `<Button asChild><Link …></Button>` and `variant="outline"`.
+- Replace `text-[#d8b56d]` with `text-pending` and `border-white/10` / `bg-white/5` with `border-rule-soft` / `bg-surface-sunk`.
+
+Then remove the shell:
 
 ```bash
 cd Client/src && git rm components/ProductShell.jsx
 ```
 
-If anything still imports it, replace that usage with primitives first.
+Confirm nothing still imports it:
+
+```bash
+cd Client && grep -rn "ProductShell\|MetricCard\|SectionBlock\|RoleDashboard" src/ || echo "NO SHELL REFERENCES"
+```
+
+Expected: `NO SHELL REFERENCES`.
 
 - [ ] **Step 5: Convert the remaining JS modules**
 
