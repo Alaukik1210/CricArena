@@ -1951,21 +1951,40 @@ export interface PlayRoomSummary {
     matchDate: string | null;
 }
 
-export interface DiscoveryFeed {
-    rooms: PlayRoomSummary[];
-    players: unknown[];
+export interface ActivePlayerSummary {
+    id: string;
+    userId: string;
+    skillLevel: string | null;
+    preferredRoles: string[];
+    availabilityType: string;
+    distanceKm: number | null;
+    user: { id: string; fullname: string; city: string; state: string };
 }
 
+/** Mirrors the server envelope exactly — see note below. */
+export interface DiscoveryFeed {
+    rooms: PlayRoomSummary[];
+    activePlayers: ActivePlayerSummary[];
+}
+
+/** Mirrors `discoveryFeedQuerySchema` in Server/src/modules/discovery/discovery.schemas.ts. */
 export interface DiscoveryFilters {
     latitude?: number;
     longitude?: number;
     radiusKm?: number;
     city?: string;
     state?: string;
+    sport?: "CRICKET";
 }
 ```
 
-> Open the real response shape in `Server/src/modules/discovery/discovery.service.ts` and adjust these fields to match exactly. Do not guess field names — the server is the contract.
+**The contract, read off the server — do not re-derive it:**
+
+- Endpoint is `GET /discovery/feed`, and it is **not** behind `authentication` (see `discovery.routes.ts`).
+- The controller responds `res.json({ success: true, ...feed })`, so `rooms` and `activePlayers` are **top-level keys, not nested under `data`**. An `api.get<{data: T}>(...).data.data` access would be `undefined`.
+- The key is `activePlayers`, not `players`.
+- `distanceKm` is present **only when both `latitude` and `longitude` are supplied**; without coordinates the service returns rows unfiltered and with no `distanceKm` field at all. Treat it as `number | null | undefined` at the edge and render `"—"` when absent.
+- Each room is the full Prisma `PlayRoom` row plus `distanceKm`, and carries an `members` array of approved members.
 
 - [ ] **Step 2: Create the API module**
 
@@ -1976,14 +1995,15 @@ import { api } from "@/lib/api";
 import type { DiscoveryFeed, DiscoveryFilters } from "./discovery.types";
 
 export async function fetchDiscoveryFeed(filters: DiscoveryFilters): Promise<DiscoveryFeed> {
-    const { data } = await api.get<{ success: boolean; data: DiscoveryFeed }>("/discovery/feed", {
+    // The server spreads the feed into the envelope:
+    //   res.json({ success: true, ...feed })
+    // so `rooms` / `activePlayers` sit at the top level, NOT under `data`.
+    const { data } = await api.get<{ success: boolean } & DiscoveryFeed>("/discovery/feed", {
         params: filters,
     });
-    return data.data;
+    return { rooms: data.rooms ?? [], activePlayers: data.activePlayers ?? [] };
 }
 ```
-
-> Confirm the real path and envelope against `Server/src/modules/discovery/discovery.routes.ts` and the controller before running.
 
 - [ ] **Step 3: Create the table view**
 
@@ -2000,6 +2020,7 @@ const columns: Column<PlayRoomSummary>[] = [
         header: "Dist",
         align: "right",
         numeric: true,
+        // distanceKm is absent entirely when the caller sent no coordinates.
         render: (r) => (r.distanceKm == null ? "—" : `${r.distanceKm.toFixed(1)}km`),
     },
     {
