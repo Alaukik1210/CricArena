@@ -3,14 +3,14 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 // Eager - needed for shell
-import Layout from "../components/Layout.jsx";
+import Layout from "./Layout";
 
 // Route-level code-splitting
 const App = lazy(() => import("../App"));
 const TicketBookingForm = lazy(() => import("../features/tournaments/TicketBookingForm"));
 const PlayerRegistrationForm = lazy(() => import("../features/profile/PlayerRegistrationForm"));
 const TournamentHostingForm = lazy(() => import("../features/tournaments/TournamentHostingForm"));
-const CricketScoreboard = lazy(() => import("../components/CricketScoreboard.jsx"));
+const CricketScoreboard = lazy(() => import("@/features/scoring/CricketScoreboard"));
 const Login = lazy(() => import("../features/auth/Login"));
 const SignUp = lazy(() => import("../features/auth/SignUp"));
 const Tours = lazy(() => import("../features/tournaments/Tours"));
@@ -22,8 +22,8 @@ const CheckoutPage = lazy(() => import("../features/bookings/CheckoutPage"));
 const DiscoverPage = lazy(() => import("../features/discovery/DiscoverPage"));
 const RoomsHub = lazy(() => import("../features/rooms/RoomsHub"));
 const BookingsHub = lazy(() => import("../features/bookings/BookingsHub"));
-const OwnerAnalytics = lazy(() => import("../components/OwnerAnalytics.jsx"));
-const OrganizerAnalytics = lazy(() => import("../components/OrganizerAnalytics.jsx"));
+const OwnerAnalytics = lazy(() => import("@/features/analytics/OwnerAnalytics"));
+const OrganizerAnalytics = lazy(() => import("@/features/analytics/OrganizerAnalytics"));
 
 const RouteFallback = () => (
     <div className="flex min-h-[50vh] items-center justify-center text-sm text-ink-soft">Loading…</div>

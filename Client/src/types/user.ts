@@ -8,6 +8,7 @@ export interface User {
     role: Role;
     state: string;
     city: string;
+    profile?: { profilePhoto?: string };
     createdAt?: string;
     updatedAt?: string;
 }
