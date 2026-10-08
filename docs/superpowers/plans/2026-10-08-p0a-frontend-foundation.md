@@ -600,6 +600,12 @@ export default {
                 display: ["var(--font-display)"],
                 body: ["var(--font-body)"],
                 data: ["var(--font-data)"],
+                // DEPRECATED — the legacy .display-title / .section-title rules
+                // @apply these. Tailwind errors with "class does not exist" if
+                // they are removed while those rules remain. Task 15 drops both
+                // together with the legacy block.
+                "cabinet-black": ["var(--font-display)"],
+                "cabinet-extrabold": ["var(--font-display)"],
             },
             borderRadius: {
                 DEFAULT: "var(--radius)",
@@ -623,13 +629,38 @@ export default {
             screens: { xs: "475px" },
         },
     },
-    plugins: [],
+    // DEPRECATED — ui/popover, ui/select, ui/tabs and ui/toast use this
+    // plugin's animate-in / fade-* / zoom-* / slide-in-* utilities and remain
+    // .jsx until Task 13. Removing it here silently drops those utilities
+    // (Tailwind emits no error for an unknown class) and kills their
+    // enter/exit transitions. Revisit in Task 15.
+    plugins: [require("tailwindcss-animate")],
 };
 ```
 
 Removed: `darkMode` (there is no dark theme), the `goldy`/`gold`/`goldx`/`orangex` literals, all eight `cabinet-*` families and the three Product Sans families, the three genuinely unused `backgroundImage` entries (`matches4`, `matches5`, `banner2`), the unused `animate` keyframe, and `tailwindcss-animate` (nothing referenced it).
 
 **Kept deliberately:** the shadcn HSL colour mappings (`background`, `card`, `popover`, `primary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`). Five `ui/*.jsx` primitives still use them and are not converted until Task 13; removing the mappings now would break them. Task 15 deletes the mappings together with the `:root` block that backs them.
+
+- [ ] **Step 3b: Delete the one stray `--radius` from the legacy block**
+
+The legacy `:root` block declares `--radius: 0.5rem` *after* `design/tokens.css` sets `--radius: 3px`. Equal specificity means the later declaration wins, so every `rounded` / `rounded-md` / `rounded-lg` utility resolves to 8px and the design system silently fails to apply its own radius for the rest of the migration.
+
+This is the **one** sanctioned edit inside the deprecated block. Delete exactly this line from the legacy `@layer base { :root { ... } }`:
+
+```css
+        --radius: 0.5rem;
+```
+
+Leave every other line in that block untouched. Nothing in the legacy CSS depends on an 8px radius — the `.product-*` rules use literal `rounded-[28px]` / `rounded-3xl` values — so the only effect is that `rounded` now correctly means 3px, which is the target.
+
+Verify:
+
+```bash
+cd Client && grep -c -- "--radius" src/index.css
+```
+
+Expected: `1` (only the Maidan declaration in `design/tokens.css` remains authoritative; this grep covers `index.css` alone, which should now have zero — if it prints `0`, that is correct and the `1` is in tokens.css).
 
 - [ ] **Step 4: Build and expect failures — this is the inventory**
 
@@ -2481,7 +2512,17 @@ Both must print their `NO …` line. **If either returns hits, stop** — a cons
 
 Once both are clean, delete from `Client/src/index.css` everything below the `DEPRECATED` marker comment Task 3 added — the `@layer base { :root { --background … } }` shadcn block, the `.dark` block, the `--arena-*` variables, and every `.product-*` / `.section-*` / `.display-title` / `.stat-*` / `.muted-copy` / `.pill-*` / `.standard-*` / `.cta-*` / `.surface-divider` rule — including the marker itself.
 
-Then delete the now-unbacked shadcn colour mappings from `tailwind.config.js` `theme.extend.colors`: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, `chart`. Keep the Maidan tokens (`ground`, `surface`, `ink`, `go`, `urgent`, `pending`, `rule`).
+Then clean `tailwind.config.js` of everything Task 3 marked DEPRECATED:
+
+- Delete the shadcn colour mappings from `theme.extend.colors`: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, `chart`. Keep the Maidan tokens (`ground`, `surface`, `ink`, `go`, `urgent`, `pending`, `rule`).
+- Delete the two deprecated `fontFamily` aliases `cabinet-black` and `cabinet-extrabold` — they existed only because the legacy `.display-title` / `.section-title` rules `@apply` them, and those rules are gone now.
+- **Check `tailwindcss-animate` before removing it.** Task 13 converted `popover`/`select`/`tabs` to `.tsx`; if the converted versions still use `animate-in` / `fade-*` / `zoom-*` / `slide-in-*`, the plugin is a live dependency and **stays**:
+
+```bash
+cd Client && grep -rnE "animate-in|animate-out|fade-(in|out)|zoom-(in|out)|slide-in-|slide-out-" src/ || echo "ANIMATE PLUGIN UNUSED — safe to remove"
+```
+
+Remove the plugin and the dependency only if that prints the `UNUSED` line.
 
 Verify the file shrank to the Maidan-only form and the build still passes:
 
