@@ -1063,6 +1063,11 @@ describe("creaseFill", () => {
     it("treats negative current as 0", () => {
         expect(creaseFill(-2, 11)).toBe(0);
     });
+
+    it("returns 0 for non-finite inputs", () => {
+        expect(creaseFill(NaN, 11)).toBe(0);
+        expect(creaseFill(5, Infinity)).toBe(0);
+    });
 });
 
 describe("CreaseCard", () => {
@@ -1089,8 +1094,13 @@ describe("CreaseCard", () => {
 
     it("inks the crease in exact proportion to the squad", () => {
         render(<CreaseCard title="Room" meta="m" current={7} required={11} />);
-        // 7/11 = 63.64% of the perimeter, normalised by pathLength=100
-        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "63.64 100");
+        const stroke = screen.getByTestId("crease-stroke");
+        // Pin pathLength explicitly: without it the dasharray is in user units
+        // and the proportion is wrong at every aspect ratio - yet every other
+        // assertion here would still pass.
+        expect(stroke).toHaveAttribute("pathLength", "100");
+        // 7/11 = 63.64% of the perimeter
+        expect(stroke).toHaveAttribute("stroke-dasharray", "63.64 100");
     });
 
     it("closes the crease for a full squad", () => {
@@ -1145,12 +1155,12 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
 
         return (
             <div
+                {...props}
                 ref={ref}
                 role="group"
                 aria-label={`${title} — ${current} of ${required} players`}
                 data-complete={complete ? "true" : "false"}
                 className={cn("relative rounded bg-surface p-5", className)}
-                {...props}
             >
                 {/*
                   The crease. pathLength={100} normalises the rectangle's
@@ -1176,7 +1186,7 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
                     <p className="mt-3 font-data text-sm text-ink">
                         {current}/{required}
                         <span className="ml-2 text-ink-soft">
-                            {complete ? "full" : `${required - current} needed`}
+                            {complete ? "full" : `${Math.max(0, required - current)} needed`}
                         </span>
                     </p>
                     {children}
@@ -1194,7 +1204,7 @@ CreaseCard.displayName = "CreaseCard";
 cd Client && npx vitest run src/components/ui/crease-card.test.tsx
 ```
 
-Expected: `13 passed`.
+Expected: `14 passed`.
 
 - [ ] **Step 5: Typecheck and lint**
 
