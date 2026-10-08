@@ -2051,11 +2051,60 @@ git mv utils/payment.js features/bookings/payment.ts
 
 Add explicit parameter and return types. Keep every Stripe call byte-identical.
 
-- [ ] **Step 3: Convert the three booking components**
+- [ ] **Step 3: Fix the Stripe Elements appearance (carried over from Task 2)**
 
-Add prop types, apply the class mapping, switch raw `axios` to `api`. **Do not alter** PaymentIntent creation, Elements configuration, or `confirmPayment` arguments.
+`StripeCheckoutWrapper` hardcodes the **old dark palette** inside `cardElementOptions.style`:
 
-- [ ] **Step 4: Update the router**
+```js
+color: "#f5efe3",
+fontFamily: "CabinetGrotesk-Medium, sans-serif",   // font deleted in Task 2
+"::placeholder": { color: "rgba(245, 239, 227, 0.45)" },
+```
+
+Two defects. The font no longer exists. And `#f5efe3` is near-white — against the new `--surface` (`#FAF7F0`) the card input renders **invisible**. This must be fixed here or checkout silently breaks.
+
+Stripe Elements renders inside an iframe and **cannot read CSS custom properties** from the parent page, so these must be literal values. To keep them out of Layer 3 (where Task 15's lint rule bans raw hex), put them in the design layer.
+
+Create `Client/src/design/stripe-appearance.ts`:
+
+```ts
+/**
+ * Literal Maidan values for Stripe Elements.
+ *
+ * Elements renders in a cross-origin iframe and cannot resolve CSS custom
+ * properties from this document, so these cannot be var(--ink) etc.
+ * They live here, in the design layer, so the values stay in one place and
+ * Layer 3 still never writes a colour. Keep in sync with design/tokens.css.
+ */
+export const stripeCardStyle = {
+    base: {
+        color: "#2B2520", // --ink
+        fontFamily: '"Inter Tight", system-ui, sans-serif', // --font-body
+        fontSize: "16px",
+        "::placeholder": {
+            color: "#A79D90", // --ink-faint
+        },
+    },
+    invalid: {
+        color: "#A32A1F", // --urgent
+        iconColor: "#A32A1F",
+    },
+} as const;
+```
+
+In `StripeCheckoutWrapper.tsx`, delete the inline `cardElementOptions.style` object and import it:
+
+```ts
+import { stripeCardStyle } from "@/design/stripe-appearance";
+```
+
+Keep every other key of `cardElementOptions` exactly as it was.
+
+- [ ] **Step 4: Convert the three booking components**
+
+Add prop types, apply the class mapping, switch raw `axios` to `api`. **Do not alter** PaymentIntent creation, Elements configuration beyond the `style` object replaced in Step 3, or `confirmPayment` arguments.
+
+- [ ] **Step 5: Update the router**
 
 ```tsx
 const GroundsPage = lazy(() => import("../features/grounds/GroundsPage"));
@@ -2063,7 +2112,7 @@ const BookingsHub = lazy(() => import("../features/bookings/BookingsHub"));
 const CheckoutPage = lazy(() => import("../features/bookings/CheckoutPage"));
 ```
 
-- [ ] **Step 5: Verify, including a manual payment smoke test**
+- [ ] **Step 6: Verify, including a manual payment smoke test**
 
 ```bash
 cd Client && npx tsc --noEmit && npx eslint src/features && npx vitest run && npx vite build
@@ -2071,7 +2120,9 @@ cd Client && npx tsc --noEmit && npx eslint src/features && npx vitest run && np
 
 Then **manually**, with the server running and Stripe in test mode: open `/grounds`, pick a ground and slot, reach checkout, pay with `4242 4242 4242 4242`, and confirm the booking appears in `/bookings`. Automated coverage for this flow is not in P0a — this manual pass is the gate.
 
-- [ ] **Step 6: Commit**
+**Look at the card input specifically.** Confirm the typed digits are dark on the light surface and the placeholder is legible. That is the Step 3 fix being verified; a passing payment with invisible text is still a failure.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add -A Client/src
