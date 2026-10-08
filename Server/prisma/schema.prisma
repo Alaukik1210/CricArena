@@ -218,6 +218,9 @@ model Ground {
   updatedAt       DateTime @updatedAt
 }
 
+/// DEPRECATED - superseded by Booking + PaymentRecord.
+/// Retained so historical revenue survives; no new rows should be written.
+/// Removal is tracked in P0b. See docs/PLAN.md section 3 gap #14.
 model GroundBooking {
   id              String   @id @default(uuid())
   paymentIntentId String   @unique

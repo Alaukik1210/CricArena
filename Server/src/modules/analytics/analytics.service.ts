@@ -1,6 +1,42 @@
 import { PlayRoomStatus } from "@prisma/client";
 import { prisma } from "../../shared/db/prisma";
 
+type RevenueInput = {
+    bookingRecords: { amount: number }[];
+    structuredBookings: { payments: { amount: number; status: string }[] }[];
+};
+
+/**
+ * Single source of truth for ground revenue.
+ *
+ * Previously revenue summed only `bookingRecords` (legacy GroundBooking)
+ * while the booking *count* included structured bookings - so every
+ * structured Booking contributed zero revenue. See docs/PLAN.md section 3 gap #13.
+ *
+ * This also stops counting the denormalized `Ground.bookings` column. That
+ * column is only ever written at ground creation from `data.bookings ?? 0`
+ * and is never incremented when a booking is made, so adding it to the count
+ * mixed an owner-supplied arbitrary number into a real total. Counts are now
+ * derived purely from booking rows.
+ */
+export function computeGroundRevenue(ground: RevenueInput): { bookings: number; revenue: number } {
+    const legacyRevenue = ground.bookingRecords.reduce((sum, b) => sum + b.amount, 0);
+
+    const structuredRevenue = ground.structuredBookings.reduce(
+        (sum, booking) =>
+            sum +
+            booking.payments
+                .filter((p) => p.status === "SUCCEEDED")
+                .reduce((pSum, p) => pSum + p.amount, 0),
+        0,
+    );
+
+    return {
+        bookings: ground.bookingRecords.length + ground.structuredBookings.length,
+        revenue: legacyRevenue + structuredRevenue,
+    };
+}
+
 export class AnalyticsService {
     async getOwnerAnalytics(userId: string) {
         const owner = await prisma.ownerProfile.findUnique({
@@ -9,7 +45,7 @@ export class AnalyticsService {
                 grounds: {
                     include: {
                         bookingRecords: true,
-                        structuredBookings: true,
+                        structuredBookings: { include: { payments: true } },
                     },
                 },
             },
@@ -20,15 +56,13 @@ export class AnalyticsService {
         }
 
         const grounds = owner.grounds.map((ground) => {
-            const legacyRevenue = ground.bookingRecords.reduce((sum, booking) => sum + booking.amount, 0);
-            const structuredBookingCount = ground.structuredBookings.length;
-
+            const { bookings, revenue } = computeGroundRevenue(ground);
             return {
                 id: ground.id,
                 name: ground.name,
-                bookings: ground.bookings + structuredBookingCount,
-                revenue: legacyRevenue,
-                occupancyLabel: `${structuredBookingCount} structured bookings`,
+                bookings,
+                revenue,
+                occupancyLabel: `${ground.structuredBookings.length} structured bookings`,
             };
         });
 
