@@ -2631,26 +2631,40 @@ Create `Client/src/app/Layout.test.tsx`:
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import store from "@/redux/store";
 import Layout from "./Layout";
+
+// Layout renders Navbar, which calls useAppSelector. Without a Provider the
+// render throws on missing react-redux context and the test would go red for
+// a reason that has nothing to do with the skip link - which would make the
+// RED step prove nothing.
+function renderLayout() {
+    return render(
+        <Provider store={store}>
+            <MemoryRouter>
+                <Layout />
+            </MemoryRouter>
+        </Provider>,
+    );
+}
 
 describe("Layout", () => {
     it("renders a skip link targeting the main region", () => {
-        render(
-            <MemoryRouter>
-                <Layout />
-            </MemoryRouter>,
-        );
+        renderLayout();
         const skip = screen.getByRole("link", { name: /skip to main content/i });
         expect(skip).toHaveAttribute("href", "#main-content");
     });
 
     it("renders a main landmark with the matching id", () => {
-        render(
-            <MemoryRouter>
-                <Layout />
-            </MemoryRouter>,
-        );
+        renderLayout();
         expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
+    });
+
+    it("puts the skip link before the navbar in tab order", () => {
+        const { container } = renderLayout();
+        const focusable = container.querySelectorAll("a[href], button");
+        expect(focusable[0]).toHaveAccessibleName(/skip to main content/i);
     });
 });
 ```
@@ -2661,7 +2675,13 @@ describe("Layout", () => {
 cd Client && npx vitest run src/app/Layout.test.tsx
 ```
 
-Expected: FAIL — no skip link exists.
+Expected: FAIL because no skip link and no `<main>` exist — `getByRole("link", ...)`
+and `getByRole("main")` both find nothing.
+
+**Check the failure reason, not just the red.** If the output instead shows
+`could not find react-redux context value` or any other render crash, the test
+is failing for the wrong reason and proves nothing about the skip link. Fix the
+harness until the failure is the missing element, then proceed.
 
 - [ ] **Step 3: Add the skip link and main landmark**
 
@@ -2746,7 +2766,17 @@ If any value regresses below these thresholds, stop and report rather than adjus
 
 - [ ] **Step 5: Split vendor chunks**
 
-The build warns that one chunk exceeds 500 kB. In `Client/vite.config.js`, add to `build`:
+The build warns that one chunk exceeds 500 kB.
+
+`Client/vite.config.js` currently has **no `build` key** - it is only
+`plugins` + `resolve`. Add the whole block below as a new top-level key of the
+`defineConfig` object; do not look for an existing `build` to merge into. Match
+that file's existing style (2-space indent, no semicolons), which differs from
+`vitest.config.ts`.
+
+All eleven packages named below are confirmed present in `Client/package.json`.
+A `manualChunks` entry naming a package that is not installed fails the build,
+so if you add any beyond this list, verify it first.
 
 ```js
 build: {
@@ -2770,18 +2800,26 @@ build: {
 cd Client/src/assets && for f in *.jpg *.png; do npx -y sharp-cli -i "$f" -o "${f%.*}.webp" -f webp -q 82 2>/dev/null || true; done
 ```
 
-Then update **both** reference sites, not just one:
+Then update **all three** reference sites, not just one:
 
 1. Every `import x from "../assets/*.png"` in `src/`.
 2. **`tailwind.config.js` `backgroundImage`** — nine entries point at `url("/src/assets/*.png|jpg")`. These are plain strings, so TypeScript will not catch a stale path; a missed one silently renders no background.
+3. **`index.html`** — line 5 is `<link rel="icon" type="image/svg+xml" href="./src/assets/logo.png" />`. Vite rewrites this path at build time, so deleting `logo.png` without updating it breaks the build. Two notes: the `type` already lies (it declares SVG for a PNG) — correct it to match whatever the file actually ends up being; and `logo.png` is also imported by `Navbar.tsx`, so both sites move together or neither does.
+
+This is the same failure shape as the deletions caught in Tasks 3, 8 and 13:
+the reference that breaks is the one no type checker reads.
 
 Verify before deleting the originals:
 
 ```bash
-cd Client && grep -rn "assets/.*\.\(png\|jpg\|jpeg\)" src/ tailwind.config.js || echo "ALL MIGRATED"
+cd Client && grep -rn "assets/.*\.\(png\|jpg\|jpeg\)" src/ tailwind.config.js index.html || echo "ALL MIGRATED"
 ```
 
-Delete the originals **only** once that prints `ALL MIGRATED` and `npx vite build` passes. If `sharp-cli` is unavailable, skip this step entirely and note it — it is an optimisation, not a correctness fix, and a half-migrated asset set is worse than none.
+Delete the originals **only** once that prints `ALL MIGRATED` and `npx vite build` passes. If `sharp-cli` is unavailable, skip this step entirely and note it — it is an optimisation, not a correctness fix, and a half-migrated asset set is worse than none. **Skipping is an acceptable outcome for this step**; a broken reference is not. If you skip, say so plainly in your report so Task 15 can record it rather than assume it was done.
+
+Scale, for context: `src/assets` is **34 MB**, with `matchbg1.png` alone at 12 MB and `herobg.png` at 5.4 MB. Those two are most of the win. Convert the whole set if the tool works, but if you have to triage, the files over 1 MB are what matter.
+
+Keep `logo.png` as a PNG regardless — it is the favicon, and the gain on a small logo is not worth touching two extra reference sites.
 
 - [ ] **Step 7: Verify and commit**
 
