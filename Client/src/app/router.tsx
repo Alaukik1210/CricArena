@@ -19,8 +19,8 @@ const Grounds = lazy(() => import("../components/Grouds.jsx"));
 const About_cric = lazy(() => import("../features/marketing/About_cric"));
 const RegisterTour = lazy(() => import("../components/RegisterTour.jsx"));
 const CheckoutPage = lazy(() => import("../components/CheckoutPage.jsx"));
-const Discover = lazy(() => import("../components/Discover.jsx"));
-const RoomsHub = lazy(() => import("../components/RoomsHub.jsx"));
+const DiscoverPage = lazy(() => import("../features/discovery/DiscoverPage"));
+const RoomsHub = lazy(() => import("../features/rooms/RoomsHub"));
 const BookingsHub = lazy(() => import("../components/BookingsHub.jsx"));
 const OwnerAnalytics = lazy(() => import("../components/OwnerAnalytics.jsx"));
 const OrganizerAnalytics = lazy(() => import("../components/OrganizerAnalytics.jsx"));
@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
             { path: "/tournaments", element: lazyRoute(Tours) },
             { path: "/profile/:id", element: lazyRoute(PlayerProfile) },
             { path: "/grounds", element: lazyRoute(Grounds) },
-            { path: "/discover", element: lazyRoute(Discover) },
+            { path: "/discover", element: lazyRoute(DiscoverPage) },
             { path: "/rooms", element: lazyRoute(RoomsHub) },
             { path: "/bookings", element: lazyRoute(BookingsHub) },
             { path: "/owner/analytics", element: lazyRoute(OwnerAnalytics) },
