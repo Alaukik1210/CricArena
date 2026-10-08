@@ -40,4 +40,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+// `buttonVariants` is intentionally NOT exported. Nothing consumes it, and
+// exporting a non-constant alongside a component trips
+// react-refresh/only-export-components, which Task 15 must drive to zero
+// warnings. Re-export it only when a caller actually needs it.
+export { Button };
