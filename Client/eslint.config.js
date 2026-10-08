@@ -118,6 +118,15 @@ export default [
             'Named Tailwind palette colour. Use a design token (bg-ground, text-ink, text-urgent, …). See docs/PLAN.md §5.',
         },
         {
+          // The twin of the rule above. A conditional className is the most
+          // likely way a named palette colour comes back, so the palette rule
+          // needs this as much as the hex and rgb() rules do.
+          selector:
+            "TemplateElement[value.raw=/\\b(bg|text|border|ring|from|to|via)-(black|white|gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(-[0-9]{2,3})?\\b/]",
+          message:
+            'Named Tailwind palette colour in a template literal. Use a design token. See docs/PLAN.md §5.',
+        },
+        {
           selector: "Literal[value=/\\b(rgb|rgba|hsl|hsla)\\(/]",
           message: 'Functional colour literal. Use a design token. See docs/PLAN.md §5.',
         },
