@@ -1891,11 +1891,12 @@ git add Client/src/app Client/src/lib/auth-events.ts Client/src/lib/auth-events.
 git commit -m "feat(app): extract providers/router, implement the 401 handler
 
 auth:unauthorized was dispatched into an empty handler, so 401s did
-nothing. It now clears user state and the query cache, then redirects to
-/login with a return path.
+nothing. It now clears user state, clears the query cache, purges the
+persisted copy, and redirects to /login with a return path.
 
-Also removes the global axios.defaults.withCredentials that existed only
-for legacy JSX components."
+axios.defaults.withCredentials MOVES to app/providers.tsx rather than
+being removed - 14 components still use raw axios and need it until
+Task 13."
 ```
 
 ---
