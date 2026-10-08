@@ -68,7 +68,7 @@ export default {
                 display: ["var(--font-display)"],
                 body: ["var(--font-body)"],
                 data: ["var(--font-data)"],
-                // DEPRECATED � @apply'd by the legacy block in index.css; the
+                // DEPRECATED — @apply'd by the legacy block in index.css; the
                 // build fails without them. Removed in Task 15 with that block.
                 "cabinet-black": ["CabinetGrotesk-Black"],
                 "cabinet-extrabold": ["CabinetGrotesk-Extrabold"],
@@ -95,5 +95,10 @@ export default {
             screens: { xs: "475px" },
         },
     },
-    plugins: [],
+    // DEPRECATED — ui/popover, ui/select, ui/tabs and ui/toast use this
+    // plugin's animate-in / fade-* / zoom-* / slide-in-* utilities and remain
+    // .jsx until Task 13. Removing it here silently drops those utilities
+    // (Tailwind emits no error for an unknown class) and kills their
+    // enter/exit transitions. Revisit in Task 15.
+    plugins: [require("tailwindcss-animate")],
 };
