@@ -1,12 +1,23 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLightbulb, faGear, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
-import { motion, useAnimation } from "framer-motion";
+import { motion, useAnimation, type Variants } from "framer-motion";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useInView } from "react-intersection-observer";
+
+interface Service {
+  className?: string;
+  bg: string;
+  icon?: IconDefinition;
+  iconColor?: string;
+  emoji?: string;
+  title: string;
+  text: string;
+}
 
 const ServicesHub = () => {
   const controls = useAnimation();
-  const [ref, inView] = useInView({
+  const [, inView] = useInView({
     threshold: 0.3,
     triggerOnce: true
   });
@@ -17,13 +28,9 @@ const ServicesHub = () => {
     }
   }, [controls, inView]);
 
-  const headingRef = useRef(null);
-const [headingInView] = useInView({
-  threshold: 0.3,
-  triggerOnce: true
-});
+  const headingRef = useRef<HTMLDivElement>(null);
 
-const headingVariants = {
+const headingVariants: Variants = {
   hidden: { opacity: 0, x: -50 },
   visible: { 
     opacity: 1, 
@@ -35,7 +42,7 @@ const headingVariants = {
   }
 };
 
-const lineVariants = {
+const lineVariants: Variants = {
   hidden: { width: 0 },
   visible: { 
     width: "27%",
@@ -46,7 +53,7 @@ const lineVariants = {
   }
 };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: {},
     visible: {
       transition: {
@@ -55,7 +62,7 @@ const lineVariants = {
     }
   };
 
-  const serviceCardVariants = {
+  const serviceCardVariants: Variants = {
     hidden: { 
       y: 50,
       opacity: 0 
@@ -71,7 +78,7 @@ const lineVariants = {
     }
   };
 
-  const listItemVariants = {
+  const listItemVariants: Variants = {
     hidden: { x: -50, opacity: 0 },
     visible: {
       x: 0,
@@ -88,10 +95,10 @@ const lineVariants = {
   ref={headingRef}
   variants={headingVariants}
   initial="hidden"
-  animate={headingInView ? "visible" : "hidden"}
+  animate="visible"
   className="relative"
 >
-  <div className="md:ml-28 ml:4 lg:text-6xl text-3xl text-orangex font-cabinet-extrabold font-bold lg:mt-8 mt-4 w-[250px] lg:w-[470px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black">
+  <div className="md:ml-28 ml:4 lg:text-6xl text-3xl text-orangex font-display font-bold lg:mt-8 mt-4 w-[250px] lg:w-[470px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black">
     <span className="text-white md:mr-2">Services</span> Hub
   </div>
   
@@ -130,7 +137,7 @@ const lineVariants = {
 
         <div className="relative mt-12 max-w-[700px] text-xl">
           <div className="grid md:grid-cols-2 gap-6">
-            {[
+            {([
               {
                 className: "md:-mt-12 mr-4",
                 bg: "bg-[#082621]",
@@ -160,7 +167,7 @@ const lineVariants = {
                 title: "Manage Tournaments",
                 text: "Organize, track, and manage tournaments effortlessly, making competition management smooth and enjoyable."
               }
-            ].map((service, index) => (
+            ] as Service[]).map((service, index) => (
               <motion.div
                 key={index}
                 variants={serviceCardVariants}
@@ -173,7 +180,7 @@ const lineVariants = {
                     {service.emoji ? (
                       <span className="text-4xl">{service.emoji}</span>
                     ) : (
-                      <FontAwesomeIcon icon={service.icon} className={`${service.iconColor} text-4xl`} />
+                      service.icon && <FontAwesomeIcon icon={service.icon} className={`${service.iconColor} text-4xl`} />
                     )}
                     <h3 className="text-xl text-white font-semibold">{service.title}</h3>
                   </div>

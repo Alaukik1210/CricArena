@@ -1,6 +1,5 @@
-import React from 'react'
-import vector from'../assets/Cricket-pana - Copy.png'
-import ball from '../assets/ballsvg.svg'
+import vector from'../../assets/Cricket-pana - Copy.png'
+import ball from '../../assets/ballsvg.svg'
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
@@ -47,7 +46,7 @@ const Join = () => {
       <div className='flex justify-evenly text-xl font-semibold text-white font-product-sans '>
        
         <div id='text' className='mt-40 p-8 text-left w-[1500px] bg-goldx rounded-3xl  h-fit mb-8 ml-28 z-40'>
-          <div className='font-cabinet-medium text-4xl  text-orangex mb-8'>
+          <div className='font-body text-4xl  text-orangex mb-8'>
           Together We Rise, Together We Play!
           </div>
             <div className=''>Join <span className='text-orangex'>CricArena</span> and unleash your cricketing potential! Connect with teams, play in exciting local tournaments, and rise through the ranks. Whether you’re a seasoned pro or a passionate newcomer, the field is waiting for you. Ready to hit your way to glory? 
@@ -75,13 +74,13 @@ const Join = () => {
            
        </div>
        <div className='mt-6 text-left ml-4'>
-       <div className='font-cabinet-medium text-2xl hover:bg-black text-orangex mb-8'>
+       <div className='font-body text-2xl hover:bg-black text-orangex mb-8'>
           Together We Rise, Together We Play!
           </div>
        <div>Join <span className='text-orangex'>CricArena</span> and unleash your cricketing potential! Connect with teams, play in exciting local tournaments, and rise through the ranks. Whether you’re a seasoned pro or a passionate newcomer, the field is waiting for you. Ready to hit your way to glory? 
        </div > 
        <div className='text-center'>
-        <button className='bg-gold text-black mt-8 text-center font-cabinet-bold  px-8 text-2xl rounded-full '>join now</button>
+        <button className='bg-gold text-black mt-8 text-center font-body  px-8 text-2xl rounded-full '>join now</button>
        </div>
         </div>      
       

@@ -1,6 +1,3 @@
-import React from "react";
-import { motion } from "framer-motion";
-
 const About_cric = () => {
   return (
     <div className="max-w-5xl mx-auto px-6 py-12 text-white bg-black">

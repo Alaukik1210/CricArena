@@ -1,7 +1,7 @@
 import CricketStumps from "./CricketStumps";
-import helmet from "../assets/helmet.png";
-import wicket from "../assets/wickets.png";
-import stadium from "../assets/stadium.png";
+import helmet from "../../assets/helmet.png";
+import wicket from "../../assets/wickets.png";
+import stadium from "../../assets/stadium.png";
 import { motion } from "framer-motion";
 import { useInView } from 'react-intersection-observer';
 
@@ -22,7 +22,7 @@ const Joinus = () => {
         <motion.div
           animate={inViewHeader ? { x: 100 } : { x: 0 }}
           transition={{ duration: 2, ease: "easeOut" }}
-          className="md:ml-0 -ml-20 lg:text-6xl text-4xl text-gold font-cabinet-extrabold font-bold lg:mt-8 mt-4 w-[100px] lg:w-[300px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black"
+          className="md:ml-0 -ml-20 lg:text-6xl text-4xl text-gold font-display font-bold lg:mt-8 mt-4 w-[100px] lg:w-[300px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black"
         >
           <span className="text-white md:mr-2">About</span> Us
         </motion.div>

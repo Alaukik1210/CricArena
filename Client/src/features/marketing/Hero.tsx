@@ -1,6 +1,5 @@
-import React from "react";
 import { motion } from "framer-motion";
-// import nobg from "../assets/nobg.png"
+// import nobg from "../../assets/nobg.png"
 import { useNavigate } from "react-router-dom";
 
 const Hero = () => {

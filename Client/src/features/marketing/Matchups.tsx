@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
 import { FaArrowRight, FaMapMarkerAlt, FaClock, FaUsers, FaRupeeSign } from "react-icons/fa";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { TOUR_API_END_POINT } from "@/utils/constants";
+import { api } from "@/lib/api";
 
-const fallbackMatches = [
+// The server stores entryFee/spots as strings; the fallback data uses numbers.
+interface TournamentSummary {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  venue: string;
+  tourStartsDate: string;
+  tourEndDate: string;
+  spots: string | number;
+  entryFee: string | number;
+  createdAt?: string;
+}
+
+const fallbackMatches: TournamentSummary[] = [
   {
     id: "1",
     type: "Knockout",
@@ -41,21 +54,21 @@ const fallbackMatches = [
 ];
 
 export default function Matchups() {
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState<TournamentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleRegisterClick = (id) => {
+  const handleRegisterClick = (id: string) => {
     navigate(`/register/${id}`); // Navigate to the tournament details page
   };
 
   useEffect(() => {
     async function fetchTournaments() {
      try {
-        const response = await axios.get(`${TOUR_API_END_POINT}/getTours`);
+        const response = await api.get<{ tournaments?: TournamentSummary[] }>("/owner/tours/getTours");
         const tournaments = response.data.tournaments || [];
         const sortedTournaments = tournaments
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
           .slice(0, 3);
 
         setMatches(sortedTournaments.length ? sortedTournaments : fallbackMatches);

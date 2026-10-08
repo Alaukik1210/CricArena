@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -23,7 +22,7 @@ const About = () => {
           animate={headerInView ? { x: 100 } : { x: 0 }}
           transition={{ duration: 2, ease: "easeOut" }}
           id="joinushed"
-          className="md:ml-0 -ml-20 lg:text-6xl text-4xl text-gold font-cabinet-extrabold font-bold lg:mt-8 mt-4 w-[100px] lg:w-[300px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black"
+          className="md:ml-0 -ml-20 lg:text-6xl text-4xl text-gold font-display font-bold lg:mt-8 mt-4 w-[100px] lg:w-[300px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black"
         >
           <span className="text-white md:mr-2">Join</span> Us
         </motion.div>
@@ -44,7 +43,7 @@ const About = () => {
           initial={{ x: -100, opacity: 0 }}
           animate={cardsInView ? { x: 0, opacity: 1 } : { x: -100, opacity: 0 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          className="h-96 w-[310px] text-center text-3xl font-bold font-cabinet-bold pt-4 rounded-3xl z-20 text-white bg-banner"
+          className="h-96 w-[310px] text-center text-3xl font-bold font-body pt-4 rounded-3xl z-20 text-white bg-banner"
         >
           Live from Stadium
           <div className="h-1 w-full bg-gold"></div>
@@ -62,7 +61,7 @@ const About = () => {
           initial={{ x: -100, opacity: 0 }}
           animate={cardsInView ? { x: 0, opacity: 1 } : { x: -100, opacity: 0 }}
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-          className="h-96 w-[310px] text-center text-3xl font-bold font-cabinet-bold pt-4 rounded-3xl z-20 text-white bg-banner3"
+          className="h-96 w-[310px] text-center text-3xl font-bold font-body pt-4 rounded-3xl z-20 text-white bg-banner3"
         >
           Book a Trial
           <div className="h-1 w-full bg-gold"></div>
@@ -80,7 +79,7 @@ const About = () => {
           initial={{ x: -100, opacity: 0 }}
           animate={cardsInView ? { x: 0, opacity: 1 } : { x: -100, opacity: 0 }}
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.4 }}
-          className="h-96 w-[310px] text-center text-3xl font-bold font-cabinet-bold pt-4 rounded-3xl z-20 text-white bg-bann"
+          className="h-96 w-[310px] text-center text-3xl font-bold font-body pt-4 rounded-3xl z-20 text-white bg-bann"
         >
           Host a Tournament
           <div className="h-1 w-full bg-gold"></div>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -129,7 +128,7 @@ const Upcoming = () => {
         animate={headingInView ? "visible" : "hidden"}
         className="relative"
       >
-        <div id="heading" className="md:ml-28 ml-4 lg:text-6xl text-3xl text-gold font-cabinet-extrabold font-bold lg:mt-8 mt-4 w-[250px] lg:w-[470px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black">
+        <div id="heading" className="md:ml-28 ml-4 lg:text-6xl text-3xl text-gold font-display font-bold lg:mt-8 mt-4 w-[250px] lg:w-[470px] md:pr-20 h-16 lg:h-24 lg:pt-2 pt-1 flex items-center justify-evenly rounded-r-3xl bg-black">
           <span className="text-white md:mr-2">Upcoming</span> Matches
         </div>
         
@@ -149,10 +148,10 @@ const Upcoming = () => {
           animate={contentInView ? "visible" : "hidden"}
           className='pt-12 md:mt-12 md:ml-36 ml-4'
         >
-          <div className='md:text-5xl text-2xl font-cabinet-bold m-4 md:ml-20 text-gold font-semibold'>
+          <div className='md:text-5xl text-2xl font-body m-4 md:ml-20 text-gold font-semibold'>
             Mark your calendar
           </div>
-          <div className='md:text-2xl text-md font-cabinet-bold md:ml-20 m-4 mt-6 text-white'>
+          <div className='md:text-2xl text-md font-body md:ml-20 m-4 mt-6 text-white'>
             Check out the upcoming cricket matches officiated by <span className='text-gold'>CRICARENA</span>. Stay updated on the match schedules,<br className="hidden md:block"/> venues, and participating teams to witness the excitement of cricket 
           </div>
         </motion.div>
@@ -181,13 +180,13 @@ const Upcoming = () => {
                   className="h-full relative flex flex-col justify-end"
                 >
                   <div className="mt-auto">
-                    <h1 className='text-gold bg-goldx text-4xl md:text-5xl font-cabinet-black font-bold flex justify-center items-baseline'>
+                    <h1 className='text-gold bg-goldx text-4xl md:text-5xl font-display font-bold flex justify-center items-baseline'>
                       {match.title}
                     </h1>
-                    <span className='text-black text-xl md:text-2xl font-cabinet-bold bg-gold flex justify-center'>
+                    <span className='text-black text-xl md:text-2xl font-body bg-gold flex justify-center'>
                       click here
                     </span>
-                    <span className='text-gold text-lg md:text-xl mb-4 font-cabinet-bold pb-2 bg-goldx flex justify-center'>
+                    <span className='text-gold text-lg md:text-xl mb-4 font-body pb-2 bg-goldx flex justify-center'>
                       {match.teams}
                     </span>
                   </div>

@@ -2,7 +2,7 @@ import { ArrowRight, CalendarRange, Compass, MapPinned, ShieldCheck, Ticket, Tro
 import { Link } from "react-router-dom";
 import { useAppSelector } from "./redux/store";
 import { MetricCard, ProductShell, SectionBlock } from "./components/ProductShell";
-import Landing from "./components/Landing";
+import Landing from "./features/marketing/Landing";
 
 const valuePoints = [
   {
