@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { formatDistance } from "./discovery.options";
 import type { PlayRoomSummary } from "./discovery.types";
 
 interface RoomTableProps {
@@ -26,8 +27,7 @@ export function RoomTable({ rooms, loading, onJoin }: RoomTableProps) {
             header: "Dist",
             align: "right",
             numeric: true,
-            // distanceKm is absent entirely when the caller sent no coordinates.
-            render: (r) => (r.distanceKm == null ? "-" : `${r.distanceKm.toFixed(1)}km`),
+            render: (r) => formatDistance(r.distanceKm),
         },
         {
             key: "spots",

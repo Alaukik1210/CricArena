@@ -56,7 +56,7 @@ export interface AvailabilityPayload extends AvailabilityValues {
     sport: "CRICKET";
     isActive: boolean;
     availabilityType: "CASUAL";
-    radiusKm: number;
+    radiusKm?: number;
     latitude?: number;
     longitude?: number;
 }
@@ -75,7 +75,7 @@ export interface RoomFormValues {
 export interface CreateRoomPayload extends Omit<RoomFormValues, "requiredPlayers"> {
     sport: "CRICKET";
     requiredPlayers: number;
-    radiusKm: number;
+    radiusKm?: number;
     latitude?: number;
     longitude?: number;
     city?: string;

@@ -10,6 +10,7 @@ import { useAppSelector } from "@/redux/store";
 import { AvailabilityForm } from "./AvailabilityForm";
 import { CreateRoomForm } from "./CreateRoomForm";
 import { RoomTable } from "./RoomTable";
+import { formatDistance } from "./discovery.options";
 import { createPlayRoom, fetchDiscoveryFeed, requestToJoin, saveAvailability } from "./discovery.api";
 import type {
     AvailabilityValues,
@@ -17,9 +18,6 @@ import type {
     DiscoveryFilters,
     RoomFormValues,
 } from "./discovery.types";
-
-const formatDistance = (distanceKm?: number | null) =>
-    typeof distanceKm === "number" ? `${distanceKm.toFixed(1)} km away` : "Within your city";
 
 const FEED_ERROR = "Could not load discovery feed right now.";
 
@@ -55,16 +53,19 @@ export default function DiscoverPage() {
         detectLocation();
     }, [detectLocation]);
 
+    // A blank input is omitted from every request; the server treats radiusKm as optional.
+    const parsedRadius = radiusKm.trim() === "" ? undefined : Number(radiusKm);
+
     const filters = useMemo<DiscoveryFilters>(() => {
         const useGeoFilters = Boolean(coords?.latitude && coords?.longitude);
         return {
             ...(coords ?? {}),
-            radiusKm: radiusKm === "" ? undefined : Number(radiusKm),
+            radiusKm: parsedRadius,
             sport: "CRICKET",
             city: useGeoFilters ? undefined : user?.city,
             state: useGeoFilters ? undefined : user?.state,
         };
-    }, [coords, radiusKm, user?.city, user?.state]);
+    }, [coords, parsedRadius, user?.city, user?.state]);
 
     const feedQuery = useQuery({
         queryKey: ["discovery-feed", filters],
@@ -97,7 +98,7 @@ export default function DiscoverPage() {
                 availabilityType: "CASUAL",
                 skillLevel: values.skillLevel,
                 preferredRoles: values.preferredRoles,
-                radiusKm: Number(radiusKm),
+                radiusKm: parsedRadius,
                 latitude: coords?.latitude,
                 longitude: coords?.longitude,
                 notes: values.notes,
@@ -122,7 +123,7 @@ export default function DiscoverPage() {
                 sport: "CRICKET",
                 latitude: coords?.latitude,
                 longitude: coords?.longitude,
-                radiusKm: Number(radiusKm),
+                radiusKm: parsedRadius,
                 requiredPlayers: Number(values.requiredPlayers),
                 city: user.city,
                 state: user.state,
