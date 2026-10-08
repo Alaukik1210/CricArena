@@ -27,7 +27,7 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
             <div
                 ref={ref}
                 role="group"
-                aria-label={`${title} — ${current} of ${required} players`}
+                aria-label={`${title} \u2014 ${current} of ${required} players`}
                 data-complete={complete ? "true" : "false"}
                 className={cn("relative rounded bg-surface p-5", className)}
                 {...props}
