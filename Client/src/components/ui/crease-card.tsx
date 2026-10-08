@@ -1,8 +1,10 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/** Fraction of the crease to ink, clamped to 0-1. Returns 0 when `required` is 0. */
-// creaseFill must be exported (tests and Task 10 reuse it) and stays beside the component it drives.
+/**
+ * Fraction of the crease to ink, clamped to 0-1. Returns 0 when `required` is 0.
+ * Exported (tests and Task 10 reuse it) and kept beside the component it drives.
+ */
 // eslint-disable-next-line react-refresh/only-export-components
 export function creaseFill(current: number, required: number): number {
     if (!Number.isFinite(current) || !Number.isFinite(required) || required <= 0) return 0;
@@ -25,12 +27,12 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
 
         return (
             <div
+                {...props}
                 ref={ref}
                 role="group"
                 aria-label={`${title} \u2014 ${current} of ${required} players`}
                 data-complete={complete ? "true" : "false"}
                 className={cn("relative rounded bg-surface p-5", className)}
-                {...props}
             >
                 {/*
                   The crease. pathLength={100} normalises the rectangle's
@@ -74,7 +76,7 @@ export const CreaseCard = React.forwardRef<HTMLDivElement, CreaseCardProps>(
                     <p className="mt-3 font-data text-sm text-ink">
                         {current}/{required}
                         <span className="ml-2 text-ink-soft">
-                            {complete ? "full" : `${required - current} needed`}
+                            {complete ? "full" : `${Math.max(0, required - current)} needed`}
                         </span>
                     </p>
                     {children}

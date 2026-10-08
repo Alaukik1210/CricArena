@@ -26,6 +26,11 @@ describe("creaseFill", () => {
     it("treats negative current as 0", () => {
         expect(creaseFill(-2, 11)).toBe(0);
     });
+
+    it("returns 0 for non-finite inputs", () => {
+        expect(creaseFill(NaN, 11)).toBe(0);
+        expect(creaseFill(5, Infinity)).toBe(0);
+    });
 });
 
 describe("CreaseCard", () => {
@@ -52,8 +57,13 @@ describe("CreaseCard", () => {
 
     it("inks the crease in exact proportion to the squad", () => {
         render(<CreaseCard title="Room" meta="m" current={7} required={11} />);
-        // 7/11 = 63.64% of the perimeter, normalised by pathLength=100
-        expect(screen.getByTestId("crease-stroke")).toHaveAttribute("stroke-dasharray", "63.64 100");
+        const stroke = screen.getByTestId("crease-stroke");
+        // pathLength normalises the perimeter to 100 units; without it the
+        // dasharray would be in user units and the proportion would be wrong
+        // at every aspect ratio.
+        expect(stroke).toHaveAttribute("pathLength", "100");
+        // 7/11 = 63.64% of the perimeter
+        expect(stroke).toHaveAttribute("stroke-dasharray", "63.64 100");
     });
 
     it("closes the crease for a full squad", () => {
