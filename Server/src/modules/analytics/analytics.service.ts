@@ -15,8 +15,12 @@ type RevenueInput = {
  * PAISE - both are written straight from Stripe's `paymentIntent.amount`, and
  * the client creates that intent as `pricePerMatch * 100`. This function is
  * the one and only place that conversion happens: it takes paise and returns
- * RUPEES, rounded to 2 decimal places so no floating-point artifact can reach
- * the dashboard. Callers must not scale the result again.
+ * RUPEES. Callers must not scale the result again. The result is exact rather
+ * than rounded-to-look-exact: both columns are Prisma `Int`, so the total is
+ * an integer, and `integer / 100` is always representable in its shortest
+ * decimal form - `3 / 100` is `0.03`, never `0.030000000000000002`. The
+ * `Math.round` below is a guard for a non-integer amount reaching this code,
+ * not what makes the arithmetic safe.
  *
  * DE-DUPLICATION. `POST /payment/confirm-booking` writes, for a single Stripe
  * payment and inside one transaction, both a legacy `GroundBooking` and a
@@ -54,6 +58,18 @@ export function computeGroundRevenue(ground: RevenueInput): { bookings: number; 
 
     // The duplicate is structural - the two rows exist because one payment was
     // written twice - so it is dropped regardless of the payment's status.
+    //
+    // That is unconditionally right for the COUNT. For REVENUE it is right
+    // because of an invariant, not a theorem: a legacy row can only exist if
+    // `confirm-booking` ran, and that handler returns early unless the intent
+    // is `succeeded`, then writes the twin PaymentRecord as SUCCEEDED at the
+    // same amount in the same transaction. So dropping the legacy row always
+    // trades it for an identical structured one.
+    //
+    // If a future refund or reconciliation path ever writes a non-SUCCEEDED
+    // status onto a PaymentRecord that still has a legacy twin, that invariant
+    // breaks and real money silently disappears from the dashboard. Change
+    // this to fall back to the legacy amount before you add such a path.
     const unduplicatedLegacy = ground.bookingRecords.filter(
         (b) => !structuredPaymentIntentIds.has(b.paymentIntentId),
     );

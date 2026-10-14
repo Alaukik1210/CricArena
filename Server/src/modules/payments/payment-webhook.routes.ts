@@ -77,6 +77,12 @@ router.post("/", async (req, res: Response) => {
                         amount: paymentIntent.amount,
                         currency: paymentIntent.currency,
                         userId: session.userId,
+                        // Also set here, not just on create, so a row written
+                        // unlinked by the earlier version of this handler is
+                        // repaired the next time its intent is seen. It is
+                        // provably the same Booking - both branches key on
+                        // the same unique bookingSessionId.
+                        bookingId: booking.id,
                     },
                     create: {
                         userId: session.userId,

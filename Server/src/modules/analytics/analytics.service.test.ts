@@ -143,9 +143,10 @@ describe("computeGroundRevenue", () => {
         expect(result).toEqual({ bookings: 1, revenue: 0 });
     });
 
-    it("rounds rupees to two decimal places", () => {
-        // 1 paisa is a hundredth of a rupee; three of them must not come back
-        // as 0.030000000000000002.
+    it("converts sub-rupee totals exactly", () => {
+        // 1 paisa is a hundredth of a rupee. This pins the conversion, not a
+        // rounding step: integer paise over 100 is exact, so three paise is
+        // 0.03 with or without the Math.round guard.
         const result = computeGroundRevenue({
             bookingRecords: [
                 { amount: 1, paymentIntentId: "pi_k" },
