@@ -3,7 +3,12 @@ import { cn } from "@/lib/utils";
 
 /**
  * Fraction of the crease to ink, clamped to 0-1. Returns 0 when `required` is 0.
- * Exported (tests and Task 10 reuse it) and kept beside the component it drives.
+ * Exported for its tests and kept beside the component it drives.
+ *
+ * NOTE: CreaseCard currently has no production call sites. Task 10 was
+ * specified to consume it and did not - the discovery screens render the
+ * squad count as plain text instead (RoomTable.tsx renders `7/11`). Either
+ * wire this in or delete it with its test; see docs/PLAN.md P0b.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function creaseFill(current: number, required: number): number {

@@ -3254,7 +3254,28 @@ errors, a11y floor, test + CI floor, owner revenue correct."
 | Booking consolidation + revenue fix | Task 7 |
 | Testing + CI from zero | Task 1 |
 
-No gaps. One addition beyond the spec: Task 1 extends ESLint to `.ts`/`.tsx`, which the spec did not anticipate — without it, finishing the TS migration would have silently reduced lint coverage to near zero.
+**CORRECTION (2026-10-14, after the whole-branch review).** This table said
+"No gaps" and two of its rows were false:
+
+- **`Grouds` and `CricketScoreboard` were never split.** Section 4 asked to
+  split four 300-480-line files. `Discover` and `PlayerProfile` genuinely were.
+  `CricketScoreboard` went 476 to **492** lines and `Grouds`/`GroundsPage` 298
+  to **330** - moved and TypeScript-converted, still single files, both larger
+  than before. This was baked into the plan, not an implementer slip: Task 13
+  Step 2 instructs only a `git mv` plus a `useCallback` fix. The table credited
+  splits the plan never contained.
+- **`CreaseCard` ships with zero production call sites.** Task 10's Interfaces
+  block declares it consumes `CreaseCard` (Task 5), and the type-consistency
+  note below claims `creaseFill` "is used identically in Tasks 5 and 10". Task
+  10 shipped without importing it. "Build the primitive" was satisfied; the
+  plan's own interface contract was not.
+
+The lesson is narrow and worth keeping: a self-review written by the same
+author as the plan will confirm the plan. Both of these were found only by an
+agent that re-derived the file list from the code rather than reading this
+table. Both are now filed in docs/PLAN.md under P0b.
+
+One addition beyond the spec: Task 1 extends ESLint to `.ts`/`.tsx`, which the spec did not anticipate — without it, finishing the TS migration would have silently reduced lint coverage to near zero.
 
 **Placeholder scan** — no `TBD`/`TODO`/"similar to Task N". Three steps intentionally direct the implementer to read the server for the real contract (Task 10 Steps 1–2, Task 8 Step 6) rather than guessing field or action names; each names the exact file to open.
 
