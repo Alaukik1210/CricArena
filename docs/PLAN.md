@@ -129,6 +129,7 @@ Nothing new ships; existing things become correct and coherent.
 - Add `ORGANIZER` to the `Role` enum; re-gate organizer routes
 - Discovery: indexed SQL bounding-box pre-filter → Haversine refinement → pagination
 - Normalize `TournamentDetails` date/money fields; collapse `Team.members`/`Team.players`; drop the stray `OwnerProfile.ownerId`
+- **`facilities` accepts any JSON and fails at the database.** `prisma/schema.prisma:212` declares `String[]`, but `src/modules/grounds/ground.schemas.ts:9` validates it as `z.unknown().optional()`. So a malformed `facilities` passes validation and dies in Prisma as a 500 where it should have been a 400. Found during the Task 15 server lint; deliberately not fixed there, because tightening a request schema is a behaviour change, not a lint fix.
 - Stripe webhook signature verification
 - Request-level tests on ownership guards and analytics revenue
 - **Decide:** build Socket.IO slot-contention, or remove the README claim
