@@ -2,12 +2,32 @@ import { PlayRoomStatus } from "@prisma/client";
 import { prisma } from "../../shared/db/prisma";
 
 type RevenueInput = {
-    bookingRecords: { amount: number }[];
-    structuredBookings: { payments: { amount: number; status: string }[] }[];
+    bookingRecords: { amount: number; paymentIntentId: string }[];
+    structuredBookings: {
+        payments: { amount: number; status: string; paymentIntentId: string | null }[];
+    }[];
 };
 
 /**
  * Single source of truth for ground revenue.
+ *
+ * UNITS. `GroundBooking.amount` and `PaymentRecord.amount` both hold INTEGER
+ * PAISE - both are written straight from Stripe's `paymentIntent.amount`, and
+ * the client creates that intent as `pricePerMatch * 100`. This function is
+ * the one and only place that conversion happens: it takes paise and returns
+ * RUPEES, rounded to 2 decimal places so no floating-point artifact can reach
+ * the dashboard. Callers must not scale the result again.
+ *
+ * DE-DUPLICATION. `POST /payment/confirm-booking` writes, for a single Stripe
+ * payment and inside one transaction, both a legacy `GroundBooking` and a
+ * structured `Booking` + `PaymentRecord`. Summing both tables therefore read
+ * one booking as two, at twice the money. `GroundBooking.paymentIntentId` and
+ * `PaymentRecord.paymentIntentId` are both unique, so a legacy row whose
+ * payment intent also appears on a `PaymentRecord` reachable through
+ * `structuredBookings` is provably that same payment written twice: it is
+ * dropped from both the sum and the count, and the structured pair is kept.
+ * A legacy row with no structured twin is a genuine historical booking and
+ * still counts.
  *
  * Previously revenue summed only `bookingRecords` (legacy GroundBooking)
  * while the booking *count* included structured bookings - so every
@@ -20,9 +40,27 @@ type RevenueInput = {
  * derived purely from booking rows.
  */
 export function computeGroundRevenue(ground: RevenueInput): { bookings: number; revenue: number } {
-    const legacyRevenue = ground.bookingRecords.reduce((sum, b) => sum + b.amount, 0);
+    // Every payment intent that the structured side already accounts for.
+    // A null `paymentIntentId` identifies nothing, so it is not collected -
+    // a legacy row can never be shown to be its twin, and is kept.
+    const structuredPaymentIntentIds = new Set<string>();
+    for (const booking of ground.structuredBookings) {
+        for (const payment of booking.payments) {
+            if (payment.paymentIntentId !== null) {
+                structuredPaymentIntentIds.add(payment.paymentIntentId);
+            }
+        }
+    }
 
-    const structuredRevenue = ground.structuredBookings.reduce(
+    // The duplicate is structural - the two rows exist because one payment was
+    // written twice - so it is dropped regardless of the payment's status.
+    const unduplicatedLegacy = ground.bookingRecords.filter(
+        (b) => !structuredPaymentIntentIds.has(b.paymentIntentId),
+    );
+
+    const legacyPaise = unduplicatedLegacy.reduce((sum, b) => sum + b.amount, 0);
+
+    const structuredPaise = ground.structuredBookings.reduce(
         (sum, booking) =>
             sum +
             booking.payments
@@ -32,8 +70,8 @@ export function computeGroundRevenue(ground: RevenueInput): { bookings: number; 
     );
 
     return {
-        bookings: ground.bookingRecords.length + ground.structuredBookings.length,
-        revenue: legacyRevenue + structuredRevenue,
+        bookings: unduplicatedLegacy.length + ground.structuredBookings.length,
+        revenue: Math.round(legacyPaise + structuredPaise) / 100,
     };
 }
 

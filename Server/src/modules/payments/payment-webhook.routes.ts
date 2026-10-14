@@ -45,7 +45,7 @@ router.post("/", async (req, res: Response) => {
                     },
                 });
 
-                await prisma.booking.upsert({
+                const booking = await prisma.booking.upsert({
                     where: {
                         bookingSessionId: session.id,
                     },
@@ -80,7 +80,11 @@ router.post("/", async (req, res: Response) => {
                     },
                     create: {
                         userId: session.userId,
-                        bookingId: null,
+                        // Must be the Booking upserted immediately above: owner
+                        // revenue reads payments only *through* a Booking, so an
+                        // unlinked PaymentRecord is invisible and a webhook-only
+                        // confirmation would report the ground as earning zero.
+                        bookingId: booking.id,
                         amount: paymentIntent.amount,
                         currency: paymentIntent.currency,
                         providerPaymentId: paymentIntent.id,
